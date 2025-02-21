@@ -111,7 +111,7 @@ export default function TabsMainScreen() {
 
               <Button
                 title="Workout Form Analysis"
-                onPress={() => router.push('/record')}
+                onPress={() => router.push('/form-analysis')}
                 containerStyle={[styles.analysisButtonContainer, { overflow: 'hidden', borderRadius: 10 }]}
                 buttonStyle={[styles.analysisButton, { borderRadius: 10, backgroundColor: '#e74c3c' }]}
               />

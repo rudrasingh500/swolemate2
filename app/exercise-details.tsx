@@ -1,5 +1,5 @@
 import { StyleSheet, View, ScrollView, ImageBackground } from 'react-native';
-import { Text, Card, Button } from '@rneui/themed';
+import { Text, Card, Button, Icon } from '@rneui/themed';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useState, useEffect } from 'react';
 
@@ -107,20 +107,9 @@ const exerciseLibrary = {
   }
 };
 
-export default function ExerciseDetails() {
-  const params = useLocalSearchParams();
-  const exerciseName = params.name as string;
-  const exercise = Object.entries(exerciseLibrary).find(
-    ([key]) => key.toLowerCase() === exerciseName?.toLowerCase()
-  )?.[1];
-
-  if (!exercise) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Exercise not found</Text>
-      </View>
-    );
-  }
+export default function ExerciseDetailsScreen() {
+  const { name } = useLocalSearchParams();
+  const [exercise, setExercise] = useState(exerciseLibrary[name as keyof typeof exerciseLibrary]);
 
   return (
     <View style={styles.container}>
@@ -130,57 +119,59 @@ export default function ExerciseDetails() {
         resizeMode="cover"
       >
         <View style={styles.overlay}>
-          <ScrollView style={styles.scrollView}>
-            <View style={styles.content}>
-              <Button
-                icon={{ name: 'arrow-left', type: 'font-awesome', color: 'white' }}
-                type="clear"
-                onPress={() => router.back()}
-                containerStyle={styles.backButton}
-              />
-              
-              <Text h2 style={styles.title}>{exercise.name}</Text>
-              
-              <Card containerStyle={styles.card}>
-                <Text style={styles.description}>{exercise.description}</Text>
-                <View style={styles.metaInfo}>
-                  <Text style={styles.metaItem}>Duration: {exercise.duration}</Text>
-                  <Text style={styles.metaItem}>Difficulty: {exercise.difficulty}</Text>
-                  <Text style={styles.metaItem}>Calories: {exercise.caloriesBurn}</Text>
-                </View>
-              </Card>
+          <View style={styles.header}>
+            <Button
+              icon={<Icon name="arrow-back" color="white" size={28} />}
+              title="Back"
+              type="clear"
+              onPress={() => router.back()}
+              containerStyle={styles.backButton}
+              titleStyle={styles.backButtonText}
+            />
+          </View>
+          <View style={styles.titleContainer}>
+            <Text h4 style={styles.title}>{exercise.name}</Text>
+          </View>
+          <ScrollView style={styles.content}>
+            <Card containerStyle={styles.card}>
+              <Text style={styles.description}>{exercise.description}</Text>
+              <View style={styles.metaInfo}>
+                <Text style={styles.metaItem}>Duration: {exercise.duration}</Text>
+                <Text style={styles.metaItem}>Difficulty: {exercise.difficulty}</Text>
+                <Text style={styles.metaItem}>Calories: {exercise.caloriesBurn}</Text>
+              </View>
+            </Card>
 
-              <Card containerStyle={styles.card}>
-                <Card.Title style={styles.cardTitle}>Target Muscles</Card.Title>
-                <View style={styles.chipContainer}>
-                  {exercise.targetMuscles.map((muscle, index) => (
-                    <View key={index} style={styles.chip}>
-                      <Text style={styles.chipText}>{muscle}</Text>
-                    </View>
-                  ))}
-                </View>
-              </Card>
-
-              <Card containerStyle={styles.card}>
-                <Card.Title style={styles.cardTitle}>Instructions</Card.Title>
-                {exercise.instructions.map((instruction, index) => (
-                  <View key={index} style={styles.instructionItem}>
-                    <Text style={styles.instructionNumber}>{index + 1}</Text>
-                    <Text style={styles.instructionText}>{instruction}</Text>
+            <Card containerStyle={styles.card}>
+              <Card.Title style={styles.cardTitle}>Target Muscles</Card.Title>
+              <View style={styles.chipContainer}>
+                {exercise.targetMuscles.map((muscle, index) => (
+                  <View key={index} style={styles.chip}>
+                    <Text style={styles.chipText}>{muscle}</Text>
                   </View>
                 ))}
-              </Card>
+              </View>
+            </Card>
 
-              <Card containerStyle={styles.card}>
-                <Card.Title style={styles.cardTitle}>Benefits</Card.Title>
-                {exercise.benefits.map((benefit, index) => (
-                  <View key={index} style={styles.benefitItem}>
-                    <Text style={styles.bulletPoint}>•</Text>
-                    <Text style={styles.benefitText}>{benefit}</Text>
-                  </View>
-                ))}
-              </Card>
-            </View>
+            <Card containerStyle={styles.card}>
+              <Card.Title style={styles.cardTitle}>Instructions</Card.Title>
+              {exercise.instructions.map((instruction, index) => (
+                <View key={index} style={styles.instructionItem}>
+                  <Text style={styles.instructionNumber}>{index + 1}</Text>
+                  <Text style={styles.instructionText}>{instruction}</Text>
+                </View>
+              ))}
+            </Card>
+
+            <Card containerStyle={styles.card}>
+              <Card.Title style={styles.cardTitle}>Benefits</Card.Title>
+              {exercise.benefits.map((benefit, index) => (
+                <View key={index} style={styles.benefitItem}>
+                  <Text style={styles.bulletPoint}>•</Text>
+                  <Text style={styles.benefitText}>{benefit}</Text>
+                </View>
+              ))}
+            </Card>
           </ScrollView>
         </View>
       </ImageBackground>
@@ -205,18 +196,48 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 20,
+  },
+  returnButtonContainer: {
+    marginTop: 20,
+    marginBottom: 20,
+    width: '100%',
+    maxWidth: 200,
+    alignSelf: 'flex-start',
+  },
+  returnButton: {
+    backgroundColor: '#e74c3c',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingTop: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
   backButton: {
-    position: 'absolute',
-    top: 20,
-    left: 10,
-    zIndex: 1,
+    minWidth: 100,
+    padding: 10,
+  },
+  backButtonText: {
+    color: 'white',
+    marginLeft: 5,
+    fontSize: 16,
+  },
+  titleContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    marginTop: 10,
   },
   title: {
     color: 'white',
-    marginBottom: 20,
     textAlign: 'center',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
   card: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
