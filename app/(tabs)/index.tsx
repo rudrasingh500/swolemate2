@@ -53,12 +53,8 @@ export default function TabsMainScreen() {
               <ScrollView style={styles.workoutsList}>
                 {workouts.map(workout => (
                   <View key={workout.id} style={styles.workoutItem}>
-                    <View>
-                      <Text style={styles.workoutName}>{workout.name}</Text>
-                      <Text style={styles.workoutDuration}>{workout.duration}</Text>
-                    </View>
                     <TouchableOpacity
-                      style={[styles.workoutItem, styles.statusContainer]}
+                      style={styles.workoutInfo}
                       onPress={() => {
                         router.push({
                           pathname: '/exercise-details',
@@ -66,13 +62,24 @@ export default function TabsMainScreen() {
                         });
                       }}
                     >
+                      <View>
+                        <Text style={styles.workoutName}>{workout.name}</Text>
+                        <Text style={styles.workoutDuration}>{workout.duration}</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <View style={styles.statusContainer}>
                       <Text style={[styles.workoutStatus, workout.completed ? styles.completed : styles.scheduled]}>
                         {workout.completed ? 'Completed' : 'Scheduled'}
                       </Text>
-                      <View style={[styles.checkbox, workout.completed && styles.checkboxCompleted]}>
-                        {workout.completed && <Text style={styles.checkmark}>✓</Text>}
-                      </View>
-                    </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => toggleWorkoutCompletion(workout.id)}
+                        style={styles.checkboxContainer}
+                      >
+                        <View style={[styles.checkbox, workout.completed && styles.checkboxCompleted]}>
+                          {workout.completed && <Text style={styles.checkmark}>✓</Text>}
+                        </View>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 ))}
               </ScrollView>
@@ -81,10 +88,20 @@ export default function TabsMainScreen() {
               <ScrollView style={styles.workoutsList}>
                 {tomorrowWorkouts.map(workout => (
                   <View key={workout.id} style={styles.workoutItem}>
-                    <View>
-                      <Text style={styles.workoutName}>{workout.name}</Text>
-                      <Text style={styles.workoutDuration}>{workout.duration}</Text>
-                    </View>
+                    <TouchableOpacity
+                      style={styles.workoutInfo}
+                      onPress={() => {
+                        router.push({
+                          pathname: '/exercise-details',
+                          params: { name: workout.name }
+                        });
+                      }}
+                    >
+                      <View>
+                        <Text style={styles.workoutName}>{workout.name}</Text>
+                        <Text style={styles.workoutDuration}>{workout.duration}</Text>
+                      </View>
+                    </TouchableOpacity>
                     <View style={styles.statusContainer}>
                       <Text style={[styles.workoutStatus, styles.planned]}>Planned</Text>
                     </View>
@@ -166,6 +183,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  workoutInfo: {
+    flex: 1,
+    marginRight: 10,
   },
   workoutName: {
     color: 'white',
