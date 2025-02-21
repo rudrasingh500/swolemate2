@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingTop: 60,
+    paddingTop: 120,
   },
   header: {
     alignItems: 'center',

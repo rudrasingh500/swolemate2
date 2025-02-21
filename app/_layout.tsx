@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { supabase } from '../lib/supabase';
 import { useRouter, useSegments } from 'expo-router';
+import React from 'react';
 
 export default function RootLayout() {
   const segments = useSegments();
@@ -14,7 +15,8 @@ export default function RootLayout() {
           // Allow questionnaire flow to continue
           return;
         }
-        if (segments[0] !== '(tabs)') {
+        // Allow exercise-details route
+        if (segments[0] !== '(tabs)' && segments[0] !== 'exercise-details') {
           router.replace('/(tabs)');
         }
       }
@@ -26,7 +28,8 @@ export default function RootLayout() {
           // Allow questionnaire flow to continue
           return;
         }
-        if (segments[0] !== '(tabs)') {
+        // Allow exercise-details route
+        if (segments[0] !== '(tabs)' && segments[0] !== 'exercise-details') {
           router.replace('/(tabs)');
         }
       } else if (!session && segments[0] !== '(auth)') {
