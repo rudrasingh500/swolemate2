@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Video } from 'expo-av';
-
 export default function FormAnalysisScreen() {
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const [recentEvaluation] = useState({
@@ -93,10 +92,9 @@ export default function FormAnalysisScreen() {
                 <Button
                   title="Start Form Analysis"
                   icon={<Ionicons name="videocam" size={24} color="white" style={styles.buttonIcon} />}
-                  containerStyle={[styles.mainButtonContainer, { overflow: 'hidden' }]}
-                  buttonStyle={[styles.mainButton, { borderRadius: 10, backgroundColor: 'rgba(231, 76, 60, 0.9)' }]}
+                  containerStyle={styles.mainButtonContainer}
+                  buttonStyle={styles.mainButton}
                   onPress={startRecording}
-                  raised
                 />
                 <Text style={styles.uploadText}>or</Text>
                 <Button
