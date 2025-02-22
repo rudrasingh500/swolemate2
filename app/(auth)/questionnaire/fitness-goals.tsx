@@ -31,15 +31,8 @@ export default function FitnessGoals() {
       return;
     }
 
-    setLoading(true);
-    try {
-      // Save the data to local state or context if needed
-      router.push('/questionnaire/equipment-access');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save goals');
-    } finally {
-      setLoading(false);
-    }
+    // Skip data persistence for now
+    router.push('/questionnaire/lifestyle-preferences');
   }
 
   return (
@@ -52,7 +45,7 @@ export default function FitnessGoals() {
         <View style={styles.overlay}>
           <View style={styles.content}>
             <Text h2 style={styles.title}>Fitness Goals</Text>
-            <Text style={styles.subtitle}>Step 2 of 3</Text>
+            <Text style={styles.subtitle}>Step 3 of 5</Text>
 
             <ScrollView style={styles.goalsContainer}>
               {goals.map(goal => (
