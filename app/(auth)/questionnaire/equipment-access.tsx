@@ -39,15 +39,8 @@ export default function EquipmentAccess() {
       return;
     }
 
-    setLoading(true);
-    try {
-      // Save the data to local state or context if needed
-      router.replace('/(tabs)');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save equipment access');
-    } finally {
-      setLoading(false);
-    }
+    // Skip data persistence for now
+    router.replace('/(tabs)');
   }
 
   return (
@@ -60,7 +53,7 @@ export default function EquipmentAccess() {
         <View style={styles.overlay}>
           <View style={styles.content}>
             <Text h2 style={styles.title}>Equipment Access</Text>
-            <Text style={styles.subtitle}>Step 3 of 3</Text>
+            <Text style={styles.subtitle}>Step 5 of 5</Text>
 
             <ScrollView style={styles.equipmentContainer}>
               {equipmentList.map(equipment => (

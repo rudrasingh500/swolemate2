@@ -36,7 +36,7 @@ export default function BasicInfo() {
         <View style={styles.overlay}>
           <View style={styles.content}>
             <Text h2 style={styles.title}>Basic Information</Text>
-            <Text style={styles.subtitle}>Step 1 of 4</Text>
+            <Text style={styles.subtitle}>Step 1 of 5</Text>
 
             <View style={styles.inputContainer}>
               <TextInput

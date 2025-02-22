@@ -49,15 +49,8 @@ export default function MedicalInfo() {
       return;
     }
 
-    setLoading(true);
-    try {
-      // Save the data to local state or context if needed
-      router.push('/questionnaire/fitness-goals');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to save medical information');
-    } finally {
-      setLoading(false);
-    }
+    // Skip data persistence for now
+    router.push('/questionnaire/fitness-goals');
   }
 
   return (
@@ -70,7 +63,7 @@ export default function MedicalInfo() {
         <View style={styles.overlay}>
           <View style={styles.content}>
             <Text h2 style={styles.title}>Health Profile</Text>
-            <Text style={styles.subtitle}>Step 2 of 4</Text>
+            <Text style={styles.subtitle}>Step 2 of 5</Text>
 
             <ScrollView style={styles.formContainer}>
               <Text style={styles.sectionTitle}>Medical Conditions</Text>
