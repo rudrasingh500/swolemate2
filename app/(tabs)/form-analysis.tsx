@@ -281,7 +281,7 @@ export default function FormAnalysisScreen() {
                 <View style={styles.progressBar}>
                   <View 
                     style={[styles.progressFill, { 
-                      width: `${(currentSlide / (selectedAnalysis ? selectedAnalysis.reps.length + 1 : 1)) * 100}%` 
+                      width: `${((currentSlide + 1) / (selectedAnalysis ? selectedAnalysis.reps.length + 2 : 1)) * 100}%` 
                     }]} 
                   />
                 </View>
@@ -573,4 +573,11 @@ navButtonDisabled: {
 navButtonTextDisabled: {
   color: 'rgba(150, 150, 150, 0.5)',
 },
+progressFill: {
+  position: 'absolute',
+  height: '100%',
+  backgroundColor: '#e74c3c',
+  borderRadius: 2,
+  transition: 'width 0.3s ease-in-out'
+}
 });
