@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, ImageBackground, ScrollView, Alert } from 'react-native';
 import { Button, Text, CheckBox } from '@rneui/themed';
 import { router } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 
 type Equipment = 'dumbbells' | 'barbell' | 'bench' | 'squat_rack' | 'cables' | 'cardio_machines' | 'resistance_bands' | 'bodyweight_only';
 
@@ -33,14 +34,35 @@ export default function EquipmentAccess() {
     }
   };
 
-  function saveEquipmentAccess() {
+  async function saveEquipmentAccess() {
     if (selectedEquipment.length === 0) {
       Alert.alert('Error', 'Please select at least one option');
       return;
     }
 
-    // Skip data persistence for now
-    router.replace('/(tabs)');
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error('No user found');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          available_equipment: selectedEquipment,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
+      router.replace('/(tabs)');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save information');
+      console.error('Error saving equipment access:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, TextInput, Alert, ImageBackground } from 'react-native';
 import { Button, Text } from '@rneui/themed';
 import { router } from 'expo-router';
+import { supabase } from '../../../lib/supabase';
 
 export default function BasicInfo() {
   const [height, setHeight] = useState('');
@@ -9,7 +10,7 @@ export default function BasicInfo() {
   const [age, setAge] = useState('');
   const [loading, setLoading] = useState(false);
 
-  function saveBasicInfo() {
+  async function saveBasicInfo() {
     if (!height || !weight || !age) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
@@ -17,10 +18,26 @@ export default function BasicInfo() {
 
     setLoading(true);
     try {
-      // Save the data to local state or context if needed
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error('No user found');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          height: parseFloat(height),
+          weight: parseFloat(weight),
+          age: parseInt(age),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
       router.push('/questionnaire/medical-info');
     } catch (error) {
       Alert.alert('Error', 'Failed to save information');
+      console.error('Error saving basic info:', error);
     } finally {
       setLoading(false);
     }

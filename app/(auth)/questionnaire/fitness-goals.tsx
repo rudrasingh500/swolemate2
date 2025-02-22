@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, ImageBackground, ScrollView, Alert } from 'react-native';
 import { Button, Text, CheckBox } from '@rneui/themed';
 import { router } from 'expo-router';
+import { supabase } from '../../../lib/supabase';
 
 type Goal = 'build_muscle' | 'lose_weight' | 'improve_strength' | 'increase_endurance' | 'better_flexibility';
 
@@ -25,14 +26,35 @@ export default function FitnessGoals() {
     );
   };
 
-  function saveGoals() {
+  async function saveGoals() {
     if (selectedGoals.length === 0) {
       Alert.alert('Error', 'Please select at least one goal');
       return;
     }
 
-    // Skip data persistence for now
-    router.push('/questionnaire/lifestyle-preferences');
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error('No user found');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          fitness_goals: selectedGoals,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
+      router.push('/questionnaire/lifestyle-preferences');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save information');
+      console.error('Error saving fitness goals:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

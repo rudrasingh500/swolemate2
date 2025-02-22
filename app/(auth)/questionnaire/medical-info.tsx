@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, ImageBackground, ScrollView, Alert, TextInput } from 'react-native';
 import { Button, Text, CheckBox } from '@rneui/themed';
 import { router } from 'expo-router';
+import { supabase } from '../../../lib/supabase';
 
 type MedicalCondition = 'none' | 'diabetes' | 'hypertension' | 'heart_disease' | 'asthma' | 'injury';
 type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
@@ -43,14 +44,38 @@ export default function MedicalInfo() {
     }
   };
 
-  function saveMedicalInfo() {
+  async function saveMedicalInfo() {
     if (!sleepHours) {
       Alert.alert('Error', 'Please enter your average sleep hours');
       return;
     }
 
-    // Skip data persistence for now
-    router.push('/questionnaire/fitness-goals');
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error('No user found');
+
+      const conditions = selectedConditions.includes('none') ? [] : selectedConditions;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          medical_conditions: conditions,
+          activity_level: activityLevel,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
+      router.push('/questionnaire/fitness-goals');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save information');
+      console.error('Error saving medical info:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
