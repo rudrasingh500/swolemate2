@@ -1,23 +1,31 @@
 import { StyleSheet, View, ImageBackground, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text, Button } from '@rneui/themed';
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
-import { Database } from '../../lib/supabase.types';
-import { router } from 'expo-router';
+import { supabase } from '../../lib/supabase/supabase';
+import { Database } from '../../lib/supabase/supabase.types';
+import { router, useNavigation } from 'expo-router';
 
 type WorkoutPlan = Database['public']['Tables']['workout_plans']['Row'];
 
 export default function TabsMainScreen() {
+  const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
   const [workoutStreak, setWorkoutStreak] = useState(0);
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [tomorrowWorkouts, setTomorrowWorkouts] = useState<any[]>([]);
 
-
   useEffect(() => {
     fetchWorkoutPlan();
-  }, []);
+
+    // Add focus listener
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchWorkoutPlan();
+    });
+
+    // Cleanup subscription on unmount
+    return unsubscribe;
+  }, [navigation]);
 
   const fetchWorkoutPlan = async () => {
     try {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, ImageBackground, ScrollView, Alert, TextInput } from 'react-native';
 import { Button, Text, CheckBox } from '@rneui/themed';
 import { router } from 'expo-router';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../../lib/supabase/supabase';
 
 type MedicalCondition = 'none' | 'diabetes' | 'hypertension' | 'heart_disease' | 'asthma' | 'injury';
 type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, TextInput, Alert, ImageBackground } from 'react-native';
 import { Button, Text } from '@rneui/themed';
 import { Link, router } from 'expo-router';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase/supabase';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');

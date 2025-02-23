@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, ImageBackground, ScrollView, Alert, TextInput } from 'react-native';
 import { Button, Text, CheckBox } from '@rneui/themed';
 import { router } from 'expo-router';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../../lib/supabase/supabase';
 
 type WorkoutEnvironment = 'gym' | 'home' | 'outdoors';
 type DietaryPreference = 'balanced' | 'vegan' | 'vegetarian' | 'keto' | 'paleo' | 'other';

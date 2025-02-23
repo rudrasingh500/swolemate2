@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, TextInput, Alert, ImageBackground } from 'react-native';
 import { Button, Text } from '@rneui/themed';
 import { router } from 'expo-router';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../../lib/supabase/supabase';
 
 export default function BasicInfo() {
   const [height, setHeight] = useState('');

@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View, Alert, TextInput, ImageBackground, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { Text, Button, Avatar } from '@rneui/themed';
 import { router } from 'expo-router';
-import { supabase } from '../../lib/supabase';
-import type { Database } from '../../lib/supabase.types';
+import { supabase } from '../../lib/supabase/supabase';
+import type { Database } from '../../lib/supabase/supabase.types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 

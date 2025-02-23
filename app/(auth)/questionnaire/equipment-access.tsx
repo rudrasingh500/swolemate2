@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, View, ImageBackground, ScrollView, Alert } from 'react-native';
 import { Button, Text, CheckBox } from '@rneui/themed';
 import { router } from 'expo-router';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase/supabase';
 
 type Equipment = 'dumbbells' | 'barbell' | 'bench' | 'squat_rack' | 'cables' | 'cardio_machines' | 'resistance_bands' | 'bodyweight_only';
 

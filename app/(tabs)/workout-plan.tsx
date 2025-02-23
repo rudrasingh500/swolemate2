@@ -2,8 +2,9 @@ import { StyleSheet, View, ImageBackground, ScrollView, TouchableOpacity, Activi
 import { Text, Button } from '@rneui/themed';
 import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
-import { supabase } from '../../lib/supabase';
-import { Database } from '../../lib/supabase.types';
+import { supabase } from '../../lib/supabase/supabase';
+import { Database } from '../../lib/supabase/supabase.types';
+import React from 'react';
 
 type WorkoutPlan = Database['public']['Tables']['workout_plans']['Row'];
 
@@ -182,25 +183,27 @@ export default function WorkoutPlanScreen() {
     }
   };
 
-  const renderPrePlanView = () => (
+  const renderPrePlanView = (isInitialView = false) => (
     <ScrollView style={styles.content}>
-      <View style={styles.header}>
-        <Button
-          title="Back to Plan"
-          type="outline"
-          onPress={() => setIsEditing(false)}
-          containerStyle={[styles.backButton]}
-          buttonStyle={[styles.outlineButton]}
-          titleStyle={[styles.outlineButtonText]}
-          icon={{
-            name: 'arrow-left',
-            type: 'feather',
-            size: 20,
-            color: '#e74c3c',
-            style: { marginRight: 10 }
-          }}
-        />
-      </View>
+      {!isInitialView && (
+        <View style={styles.header}>
+          <Button
+            title="Back to Plan"
+            type="outline"
+            onPress={() => setIsEditing(false)}
+            containerStyle={[styles.backButton]}
+            buttonStyle={[styles.outlineButton]}
+            titleStyle={[styles.outlineButtonText]}
+            icon={{
+              name: 'arrow-left',
+              type: 'feather',
+              size: 20,
+              color: '#e74c3c',
+              style: { marginRight: 10 }
+            }}
+          />
+        </View>
+      )}
       <TouchableOpacity 
         style={styles.aiSection}
         onPress={() => router.push('/questionnaire/basic-info')}
@@ -254,8 +257,8 @@ export default function WorkoutPlanScreen() {
     );
   }
 
-  if (!workoutPlan || !workoutPlan.plan_data || (workoutPlan.plan_data as DailyPlan[]).length === 0) {
-    return (
+  return (
+    <>
       <View style={styles.container}>
         <ImageBackground
           source={require('../../assets/images/background.png')}
@@ -263,77 +266,67 @@ export default function WorkoutPlanScreen() {
           resizeMode="cover"
         >
           <View style={styles.overlay}>
-            {renderPrePlanView()}
+            {!workoutPlan || !workoutPlan.plan_data || (workoutPlan.plan_data as DailyPlan[]).length === 0 ? (
+              renderPrePlanView(true)
+            ) : (
+              <View style={styles.content}>
+                {isEditing ? (
+                  renderPrePlanView()
+                ) : (
+                  <>
+                    <View style={styles.goalContainer}>
+                      <View style={styles.goalHeader}>
+                        <Text h4 style={styles.goalTitle}>Current Goal</Text>
+                        <Button
+                          title="Edit Plan"
+                          type="outline"
+                          onPress={() => setIsEditing(true)}
+                          containerStyle={styles.editButton}
+                          buttonStyle={styles.editButtonStyle}
+                          titleStyle={styles.editButtonText}
+                        />
+                      </View>
+                      <Text style={styles.goalText}>{currentGoal}</Text>
+                    </View>
+
+                    <ScrollView style={styles.planContainer}>
+                      {weeklyPlan.map((day, index) => (
+                        <View key={index} style={styles.dayContainer}>
+                          <View style={styles.dayHeader}>
+                            <Text style={styles.dayTitle}>{day.day}</Text>
+                            <Text style={styles.timeFrame}>{day.timeFrame}</Text>
+                          </View>
+
+                          {day.exercises.map((exercise, exerciseIndex) => (
+                            <TouchableOpacity
+                              key={exerciseIndex}
+                              style={styles.exerciseItem}
+                              onPress={() => {
+                                router.push({
+                                  pathname: '/exercise-details',
+                                  params: { name: exercise.name }
+                                });
+                              }}
+                            >
+                              <View style={styles.exerciseHeader}>
+                                <Text style={styles.exerciseName}>{exercise.name}</Text>
+                                <Text style={styles.duration}>{exercise.duration}</Text>
+                              </View>
+                              <Text style={styles.exerciseDetails}>
+                                {exercise.sets} sets × {exercise.reps}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      ))}
+                    </ScrollView>
+                  </>
+                )}
+              </View>
+            )}
           </View>
         </ImageBackground>
       </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <ImageBackground
-        source={require('../../assets/images/background.png')}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
-        <View style={styles.overlay}>
-          <View style={styles.content}>
-            {isEditing ? (
-              renderPrePlanView()
-            ) : (
-              <>
-                <View style={styles.goalContainer}>
-                  <View style={styles.goalHeader}>
-                    <Text h4 style={styles.goalTitle}>Current Goal</Text>
-                    <Button
-                      title="Edit Plan"
-                      type="outline"
-                      onPress={() => setIsEditing(true)}
-                      containerStyle={styles.editButton}
-                      buttonStyle={styles.editButtonStyle}
-                      titleStyle={styles.editButtonText}
-                    />
-                  </View>
-                  <Text style={styles.goalText}>{currentGoal}</Text>
-                </View>
-
-                <ScrollView style={styles.planContainer}>
-                  {weeklyPlan.map((day, index) => (
-                    <View key={index} style={styles.dayContainer}>
-                      <View style={styles.dayHeader}>
-                        <Text style={styles.dayTitle}>{day.day}</Text>
-                        <Text style={styles.timeFrame}>{day.timeFrame}</Text>
-                      </View>
-
-                      {day.exercises.map((exercise, exerciseIndex) => (
-                        <TouchableOpacity
-                          key={exerciseIndex}
-                          style={styles.exerciseItem}
-                          onPress={() => {
-                            router.push({
-                              pathname: '/exercise-details',
-                              params: { name: exercise.name }
-                            });
-                          }}
-                        >
-                          <View style={styles.exerciseHeader}>
-                            <Text style={styles.exerciseName}>{exercise.name}</Text>
-                            <Text style={styles.duration}>{exercise.duration}</Text>
-                          </View>
-                          <Text style={styles.exerciseDetails}>
-                            {exercise.sets} sets × {exercise.reps}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  ))}
-                </ScrollView>
-              </>
-            )}
-          </View>
-        </View>
-      </ImageBackground>
 
       <Modal
         visible={showConfirmation}
@@ -367,7 +360,7 @@ export default function WorkoutPlanScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </>
   );
 }
 
