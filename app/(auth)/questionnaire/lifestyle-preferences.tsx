@@ -68,7 +68,7 @@ export default function LifestylePreferences() {
     );
   };
 
-  function savePreferences() {
+  async function savePreferences() {
     if (workoutEnvironments.length === 0) {
       Alert.alert('Error', 'Please select at least one workout environment');
       return;
@@ -79,8 +79,35 @@ export default function LifestylePreferences() {
       return;
     }
 
-    // Skip data persistence for now
-    router.push('/questionnaire/equipment-access');
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error('No user found');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          workout_environments: workoutEnvironments,
+          dietary_preference: dietaryPreference,
+          work_schedule: workSchedule,
+          work_type: workType,
+          current_workout_frequency: currentFrequency,
+          planned_workout_frequency: plannedFrequency,
+          preferred_workout_days: workoutDays,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
+      router.push('/questionnaire/equipment-access');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save information');
+      console.error('Error saving lifestyle preferences:', error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
