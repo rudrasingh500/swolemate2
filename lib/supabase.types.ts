@@ -52,6 +52,38 @@ export type Database = {
           fitness_goals?: string[] | null
           available_equipment?: string[] | null
         }
+      },
+      workout_plans: {
+        Row: {
+          id: string
+          profile_id: string
+          plan_data: Json
+          current_streak: number
+          longest_streak: number
+          last_workout_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          plan_data?: Json
+          current_streak?: number
+          longest_streak?: number
+          last_workout_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          plan_data?: Json
+          current_streak?: number
+          longest_streak?: number
+          last_workout_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
       }
     }
   }
