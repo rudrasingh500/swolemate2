@@ -92,11 +92,14 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flex: 1,
+    minWidth: 120,
   },
   primaryButton: {
     backgroundColor: '#e74c3c',
     paddingVertical: 15,
     borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#e74c3c',
   },
   outlineButton: {
     borderColor: 'white',
