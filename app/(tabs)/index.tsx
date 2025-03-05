@@ -1,11 +1,11 @@
-import { StyleSheet, View, ImageBackground, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, ImageBackground, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text, Button } from '@rneui/themed';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase/supabase';
 import { Database } from '../../lib/supabase/supabase.types';
 import { router, useNavigation } from 'expo-router';
-
-type WorkoutPlan = Database['public']['Tables']['workout_plans']['Row'];
+import home_styles from '@/styles/home_style';
+import { WorkoutPlan } from '@/types/workout';
 
 export default function TabsMainScreen() {
   const navigation = useNavigation();
@@ -228,40 +228,39 @@ export default function TabsMainScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
+      <View style={[home_styles.container, home_styles.loadingContainer]}>
         <ActivityIndicator size="large" color="#e74c3c" />
       </View>
     );
   }
-
   if (!workoutPlan?.plan_data || (workoutPlan.plan_data as any[]).length === 0) {
     return (
-      <View style={styles.container}>
+      <View style={home_styles.container}>
         <ImageBackground
           source={require('../../assets/images/background.png')}
-          style={styles.backgroundImage}
+          style={home_styles.backgroundImage}
           resizeMode="cover"
         >
-          <View style={styles.overlay}>
-            <View style={styles.content}>
-              <View style={styles.emptyStateContainer}>
-                <View style={styles.streakContainerEmpty}>
-                  <Text h1 style={styles.streakNumberEmpty}>{workoutStreak}</Text>
-                  <Text style={styles.streakTextEmpty}>Day Streak</Text>
+          <View style={home_styles.overlay}>
+            <View style={home_styles.content}>
+              <View style={home_styles.emptyStateContainer}>
+                <View style={home_styles.streakContainerEmpty}>
+                  <Text h1 style={home_styles.streakNumberEmpty}>{workoutStreak}</Text>
+                  <Text style={home_styles.streakTextEmpty}>Day Streak</Text>
                 </View>
 
-                <View style={styles.noWorkoutPlanContent}>
-                  <Text h3 style={styles.welcomeText}>Welcome to Swolemate</Text>
-                  <Text style={styles.noWorkoutPlanText}>
+                <View style={home_styles.noWorkoutPlanContent}>
+                  <Text h3 style={home_styles.welcomeText}>Welcome to Swolemate</Text>
+                  <Text style={home_styles.noWorkoutPlanText}>
                     Let's start your fitness journey by creating a personalized workout plan
                   </Text>
-                  <View style={styles.buttonContainer}>
+                  <View style={home_styles.buttonContainer}>
                     <Button
                       title="Create Workout Plan"
                       onPress={() => router.push('/workout-plan')}
-                      containerStyle={[styles.createPlanButton, { width: '100%', maxWidth: 300 }]}
-                      buttonStyle={styles.createPlanButtonStyle}
-                      titleStyle={styles.buttonTitleStyle}
+                      containerStyle={[home_styles.createPlanButton, { width: '100%', maxWidth: 300 }]}
+                      buttonStyle={home_styles.createPlanButtonStyle}
+                      titleStyle={home_styles.buttonTitleStyle}
                       icon={{
                         name: 'plus-circle',
                         type: 'feather',
@@ -273,9 +272,9 @@ export default function TabsMainScreen() {
                     <Button
                       title="Workout Form Analysis"
                       onPress={() => router.push('/form-analysis')}
-                      containerStyle={[styles.createPlanButton, { width: '100%', maxWidth: 300 }]}
-                      buttonStyle={styles.analysisButtonStyle}
-                      titleStyle={styles.buttonTitleStyle}
+                      containerStyle={[home_styles.createPlanButton, { width: '100%', maxWidth: 300 }]}
+                      buttonStyle={home_styles.analysisButtonStyle}
+                      titleStyle={home_styles.buttonTitleStyle}
                       icon={{
                         name: 'camera',
                         type: 'feather',
@@ -295,27 +294,27 @@ export default function TabsMainScreen() {
 
   }
   return (
-    <View style={styles.container}>
+    <View style={home_styles.container}>
       <ImageBackground
         source={require('../../assets/images/background.png')}
-        style={styles.backgroundImage}
+        style={home_styles.backgroundImage}
         resizeMode="cover"
       >
-        <View style={styles.overlay}>
-          <View style={styles.content}>
-            <View style={styles.streakContainer}>
-              <Text h2 style={styles.streakNumber}>{workoutStreak}</Text>
-              <Text style={styles.streakText}>Day Streak</Text>
+        <View style={home_styles.overlay}>
+          <View style={home_styles.content}>
+            <View style={home_styles.streakContainer}>
+              <Text h2 style={home_styles.streakNumber}>{workoutStreak}</Text>
+              <Text style={home_styles.streakText}>Day Streak</Text>
             </View>
 
-            <View style={styles.workoutsContainer}>
-              <Text style={styles.sectionTitle}>Today's Workouts</Text>
-              <ScrollView style={styles.workoutsList}>
+            <View style={home_styles.workoutsContainer}>
+              <Text style={home_styles.sectionTitle}>Today's Workouts</Text>
+              <ScrollView style={home_styles.workoutsList}>
                 {workouts.length > 0 ? (
                   workouts.map(workout => (
-                    <View key={workout.id} style={styles.workoutItem}>
+                    <View key={workout.id} style={home_styles.workoutItem}>
                       <TouchableOpacity
-                        style={styles.workoutInfo}
+                        style={home_styles.workoutInfo}
                         onPress={() => {
                           router.push({
                             pathname: '/exercise-details',
@@ -324,39 +323,39 @@ export default function TabsMainScreen() {
                         }}
                       >
                         <View>
-                          <Text style={styles.workoutName}>{workout.name}</Text>
-                          <Text style={styles.workoutDuration}>{workout.duration}</Text>
+                          <Text style={home_styles.workoutName}>{workout.name}</Text>
+                          <Text style={home_styles.workoutDuration}>{workout.duration}</Text>
                         </View>
                       </TouchableOpacity>
-                      <View style={styles.statusContainer}>
-                        <Text style={[styles.workoutStatus, workout.completed ? styles.completed : styles.scheduled]}>
+                      <View style={home_styles.statusContainer}>
+                        <Text style={[home_styles.workoutStatus, workout.completed ? home_styles.completed : home_styles.scheduled]}>
                           {workout.completed ? 'Completed' : 'Scheduled'}
                         </Text>
                         <TouchableOpacity
                           onPress={() => toggleWorkoutCompletion(workout.id)}
-                          style={styles.checkboxContainer}
+                          style={home_styles.checkboxContainer}
                         >
-                          <View style={[styles.checkbox, workout.completed && styles.checkboxCompleted]}>
-                            {workout.completed && <Text style={styles.checkmark}>✓</Text>}
+                          <View style={[home_styles.checkbox, workout.completed && home_styles.checkboxCompleted]}>
+                            {workout.completed && <Text style={home_styles.checkmark}>✓</Text>}
                           </View>
                         </TouchableOpacity>
                       </View>
                     </View>
                   ))
                 ) : (
-                  <View style={styles.noWorkoutsContainer}>
-                    <Text style={styles.noWorkoutsText}>No workouts scheduled for today</Text>
+                  <View style={home_styles.noWorkoutsContainer}>
+                    <Text style={home_styles.noWorkoutsText}>No workouts scheduled for today</Text>
                   </View>
                 )}
               </ScrollView>
 
-              <Text style={[styles.sectionTitle, { marginTop: 30 }]}>Tomorrow's Plans</Text>
-              <ScrollView style={styles.workoutsList}>
+              <Text style={[home_styles.sectionTitle, { marginTop: 30 }]}>Tomorrow's Plans</Text>
+              <ScrollView style={home_styles.workoutsList}>
                 {tomorrowWorkouts.length > 0 ? (
                   tomorrowWorkouts.map(workout => (
-                    <View key={workout.id} style={styles.workoutItem}>
+                    <View key={workout.id} style={home_styles.workoutItem}>
                       <TouchableOpacity
-                        style={styles.workoutInfo}
+                        style={home_styles.workoutInfo}
                         onPress={() => {
                           router.push({
                             pathname: '/exercise-details',
@@ -365,18 +364,18 @@ export default function TabsMainScreen() {
                         }}
                       >
                         <View>
-                          <Text style={styles.workoutName}>{workout.name}</Text>
-                          <Text style={styles.workoutDuration}>{workout.duration}</Text>
+                          <Text style={home_styles.workoutName}>{workout.name}</Text>
+                          <Text style={home_styles.workoutDuration}>{workout.duration}</Text>
                         </View>
                       </TouchableOpacity>
-                      <View style={styles.statusContainer}>
-                        <Text style={[styles.workoutStatus, styles.planned]}>Planned</Text>
+                      <View style={home_styles.statusContainer}>
+                        <Text style={[home_styles.workoutStatus, home_styles.planned]}>Planned</Text>
                       </View>
                     </View>
                   ))
                 ) : (
-                  <View style={styles.noWorkoutsContainer}>
-                    <Text style={styles.noWorkoutsText}>No workouts scheduled for tomorrow</Text>
+                  <View style={home_styles.noWorkoutsContainer}>
+                    <Text style={home_styles.noWorkoutsText}>No workouts scheduled for tomorrow</Text>
                   </View>
                 )}
               </ScrollView>
@@ -384,8 +383,8 @@ export default function TabsMainScreen() {
               <Button
                 title="Workout Form Analysis"
                 onPress={() => router.push('/form-analysis')}
-                containerStyle={[styles.analysisButtonContainer, { overflow: 'hidden', borderRadius: 10 }]}
-                buttonStyle={[styles.analysisButton, { borderRadius: 10, backgroundColor: '#e74c3c' }]}
+                containerStyle={[home_styles.analysisButtonContainer, { overflow: 'hidden', borderRadius: 10 }]}
+                buttonStyle={[home_styles.analysisButton, { borderRadius: 10, backgroundColor: '#e74c3c' }]}
               />
             </View>
           </View>
@@ -394,229 +393,3 @@ export default function TabsMainScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  noWorkoutsContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  noWorkoutsText: {
-    color: '#e0e0e0',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  container: {
-    flex: 1,
-  },
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  content: {
-    flex: 1,
-    width: '100%',
-    maxWidth: 600,
-    alignSelf: 'center',
-    paddingTop: 40,
-  },
-  emptyStateContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  streakContainerEmpty: {
-    alignItems: 'center',
-    marginBottom: 60,
-    backgroundColor: 'rgba(231, 76, 60, 0.1)',
-    padding: 30,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(231, 76, 60, 0.3)',
-  },
-  streakNumberEmpty: {
-    color: '#e74c3c',
-    fontSize: 64,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  streakTextEmpty: {
-    color: '#e74c3c',
-    fontSize: 20,
-    opacity: 0.8,
-  },
-  welcomeText: {
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 15,
-    fontSize: 32,
-  },
-  noWorkoutPlanText: {
-    color: '#e0e0e0',
-    textAlign: 'center',
-    fontSize: 18,
-    lineHeight: 24,
-    marginBottom: 40,
-    paddingHorizontal: 20,
-  },
-  buttonContainer: {
-    width: '100%',
-    gap: 15,
-    alignItems: 'center',
-  },
-  createPlanButton: {
-    width: '100%',
-    maxWidth: 300,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  createPlanButtonStyle: {
-    backgroundColor: '#e74c3c',
-    paddingVertical: 15,
-    borderRadius: 10,
-    height: 50,
-  },
-  analysisButtonStyle: {
-    backgroundColor: 'rgba(231, 76, 60, 0.6)',
-    paddingVertical: 15,
-    borderRadius: 10,
-    height: 50,
-  },
-  buttonTitleStyle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  streakContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
-    backgroundColor: 'rgba(231, 76, 60, 0.1)',
-    padding: 30,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(231, 76, 60, 0.3)',
-  },
-  streakNumber: {
-    color: '#e74c3c',
-    fontSize: 64,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  streakText: {
-    color: '#e74c3c',
-    fontSize: 20,
-    opacity: 0.8,
-  },
-  workoutsContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 20,
-  },
-  workoutsList: {
-    flex: 1,
-    marginBottom: 15,
-  },
-  workoutItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
-  },
-  workoutInfo: {
-    flex: 1,
-    marginRight: 15,
-  },
-  workoutName: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  workoutDuration: {
-    color: '#e0e0e0',
-    fontSize: 14,
-  },
-  statusContainer: {
-    alignItems: 'flex-end',
-  },
-  workoutStatus: {
-    fontSize: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  completed: {
-    backgroundColor: 'rgba(46, 204, 113, 0.2)',
-    color: '#2ecc71',
-  },
-  scheduled: {
-    backgroundColor: 'rgba(231, 76, 60, 0.2)',
-    color: '#e74c3c',
-  },
-  planned: {
-    backgroundColor: 'rgba(52, 152, 219, 0.2)',
-    color: '#3498db',
-  },
-  checkboxContainer: {
-    padding: 4,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#e74c3c',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxCompleted: {
-    backgroundColor: '#e74c3c',
-  },
-  checkmark: {
-    color: 'white',
-    fontSize: 16,
-  },
-  analysisButtonContainer: {
-    marginTop: 20,
-    width: '100%',
-  },
-  analysisButton: {
-    backgroundColor: '#e74c3c',
-    paddingVertical: 15,
-    borderRadius: 10,
-  },
-  noWorkoutPlanContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-});
