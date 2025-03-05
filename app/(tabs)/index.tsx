@@ -1,4 +1,4 @@
-import { View, ImageBackground, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, ImageBackground, ActivityIndicator } from 'react-native';
 import { Text, Button } from '@rneui/themed';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase/supabase';
@@ -6,6 +6,9 @@ import { Database } from '../../lib/supabase/supabase.types';
 import { router, useNavigation } from 'expo-router';
 import home_styles from '@/styles/home_style';
 import { WorkoutPlan } from '@/types/workout';
+import WorkoutList from '@/components/home/WorkoutList';
+import StreakDisplay from '@/components/home/StreakDisplay';
+import EmptyStateView from '@/components/home/EmptyStateView';
 
 export default function TabsMainScreen() {
   const navigation = useNavigation();
@@ -243,55 +246,12 @@ export default function TabsMainScreen() {
         >
           <View style={home_styles.overlay}>
             <View style={home_styles.content}>
-              <View style={home_styles.emptyStateContainer}>
-                <View style={home_styles.streakContainerEmpty}>
-                  <Text h1 style={home_styles.streakNumberEmpty}>{workoutStreak}</Text>
-                  <Text style={home_styles.streakTextEmpty}>Day Streak</Text>
-                </View>
-
-                <View style={home_styles.noWorkoutPlanContent}>
-                  <Text h3 style={home_styles.welcomeText}>Welcome to Swolemate</Text>
-                  <Text style={home_styles.noWorkoutPlanText}>
-                    Let's start your fitness journey by creating a personalized workout plan
-                  </Text>
-                  <View style={home_styles.buttonContainer}>
-                    <Button
-                      title="Create Workout Plan"
-                      onPress={() => router.push('/workout-plan')}
-                      containerStyle={[home_styles.createPlanButton, { width: '100%', maxWidth: 300 }]}
-                      buttonStyle={home_styles.createPlanButtonStyle}
-                      titleStyle={home_styles.buttonTitleStyle}
-                      icon={{
-                        name: 'plus-circle',
-                        type: 'feather',
-                        size: 20,
-                        color: 'white',
-                        style: { marginRight: 10 }
-                      }}
-                    />
-                    <Button
-                      title="Workout Form Analysis"
-                      onPress={() => router.push('/form-analysis')}
-                      containerStyle={[home_styles.createPlanButton, { width: '100%', maxWidth: 300 }]}
-                      buttonStyle={home_styles.analysisButtonStyle}
-                      titleStyle={home_styles.buttonTitleStyle}
-                      icon={{
-                        name: 'camera',
-                        type: 'feather',
-                        size: 20,
-                        color: 'white',
-                        style: { marginRight: 10 }
-                      }}
-                    />
-                  </View>
-                </View>
-              </View>
+              <EmptyStateView workoutStreak={workoutStreak} />
             </View>
           </View>
         </ImageBackground>
       </View>
     );
-
   }
   return (
     <View style={home_styles.container}>
@@ -302,83 +262,21 @@ export default function TabsMainScreen() {
       >
         <View style={home_styles.overlay}>
           <View style={home_styles.content}>
-            <View style={home_styles.streakContainer}>
-              <Text h2 style={home_styles.streakNumber}>{workoutStreak}</Text>
-              <Text style={home_styles.streakText}>Day Streak</Text>
-            </View>
+            <StreakDisplay streak={workoutStreak} />
 
             <View style={home_styles.workoutsContainer}>
-              <Text style={home_styles.sectionTitle}>Today's Workouts</Text>
-              <ScrollView style={home_styles.workoutsList}>
-                {workouts.length > 0 ? (
-                  workouts.map(workout => (
-                    <View key={workout.id} style={home_styles.workoutItem}>
-                      <TouchableOpacity
-                        style={home_styles.workoutInfo}
-                        onPress={() => {
-                          router.push({
-                            pathname: '/exercise-details',
-                            params: { name: workout.name }
-                          });
-                        }}
-                      >
-                        <View>
-                          <Text style={home_styles.workoutName}>{workout.name}</Text>
-                          <Text style={home_styles.workoutDuration}>{workout.duration}</Text>
-                        </View>
-                      </TouchableOpacity>
-                      <View style={home_styles.statusContainer}>
-                        <Text style={[home_styles.workoutStatus, workout.completed ? home_styles.completed : home_styles.scheduled]}>
-                          {workout.completed ? 'Completed' : 'Scheduled'}
-                        </Text>
-                        <TouchableOpacity
-                          onPress={() => toggleWorkoutCompletion(workout.id)}
-                          style={home_styles.checkboxContainer}
-                        >
-                          <View style={[home_styles.checkbox, workout.completed && home_styles.checkboxCompleted]}>
-                            {workout.completed && <Text style={home_styles.checkmark}>✓</Text>}
-                          </View>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))
-                ) : (
-                  <View style={home_styles.noWorkoutsContainer}>
-                    <Text style={home_styles.noWorkoutsText}>No workouts scheduled for today</Text>
-                  </View>
-                )}
-              </ScrollView>
+              <WorkoutList 
+                title="Today's Workouts" 
+                workouts={workouts} 
+                onToggleCompletion={toggleWorkoutCompletion} 
+              />
 
-              <Text style={[home_styles.sectionTitle, { marginTop: 30 }]}>Tomorrow's Plans</Text>
-              <ScrollView style={home_styles.workoutsList}>
-                {tomorrowWorkouts.length > 0 ? (
-                  tomorrowWorkouts.map(workout => (
-                    <View key={workout.id} style={home_styles.workoutItem}>
-                      <TouchableOpacity
-                        style={home_styles.workoutInfo}
-                        onPress={() => {
-                          router.push({
-                            pathname: '/exercise-details',
-                            params: { name: workout.name }
-                          });
-                        }}
-                      >
-                        <View>
-                          <Text style={home_styles.workoutName}>{workout.name}</Text>
-                          <Text style={home_styles.workoutDuration}>{workout.duration}</Text>
-                        </View>
-                      </TouchableOpacity>
-                      <View style={home_styles.statusContainer}>
-                        <Text style={[home_styles.workoutStatus, home_styles.planned]}>Planned</Text>
-                      </View>
-                    </View>
-                  ))
-                ) : (
-                  <View style={home_styles.noWorkoutsContainer}>
-                    <Text style={home_styles.noWorkoutsText}>No workouts scheduled for tomorrow</Text>
-                  </View>
-                )}
-              </ScrollView>
+              <WorkoutList 
+                title="Tomorrow's Plans" 
+                workouts={tomorrowWorkouts} 
+                isPlanned={true} 
+                style={{ marginTop: 30 }} 
+              />
 
               <Button
                 title="Workout Form Analysis"

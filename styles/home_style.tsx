@@ -1,6 +1,8 @@
 import { StyleSheet } from "react-native";
+import common_styles from "./common_style";
 
 const home_styles = StyleSheet.create({
+    ...common_styles,
     noWorkoutsContainer: {
       flex: 1,
       justifyContent: 'center',
@@ -15,36 +17,18 @@ const home_styles = StyleSheet.create({
       fontSize: 16,
       textAlign: 'center',
     },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
     sectionTitle: {
       color: 'white',
       fontSize: 24,
       fontWeight: 'bold',
       marginBottom: 15,
     },
-    container: {
-      flex: 1,
-    },
-    backgroundImage: {
-      flex: 1,
-      width: '100%',
-    },
     overlay: {
-      flex: 1,
+      ...common_styles.overlay,
       backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      paddingTop: 60,
-      paddingHorizontal: 20,
-      paddingBottom: 20,
     },
     content: {
-      flex: 1,
-      width: '100%',
-      maxWidth: 600,
-      alignSelf: 'center',
+      ...common_styles.content,
       paddingTop: 40,
     },
     emptyStateContainer: {

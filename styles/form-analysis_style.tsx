@@ -1,17 +1,12 @@
 import { StyleSheet, Dimensions } from "react-native";
+import common_styles from "./common_style";
 
 const analysis_styles = StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    backgroundImage: {
-      flex: 1,
-      width: '100%',
-    },
+    ...common_styles,
     overlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-      paddingTop: 60,
+      ...common_styles.overlay,
+      paddingHorizontal: undefined,
+      paddingBottom: undefined,
     },
     scrollView: {
       flex: 1,

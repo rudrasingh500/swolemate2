@@ -1,9 +1,10 @@
 import { StyleSheet } from "react-native";
+import common_styles from "./common_style";
 
 const plan_styles = StyleSheet.create({
+    ...common_styles,
     loadingContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
+      ...common_styles.loadingContainer,
     },
     noWorkoutPlanContainer: {
       flex: 1,
@@ -23,24 +24,12 @@ const plan_styles = StyleSheet.create({
       paddingVertical: 15,
       borderRadius: 10,
     },
-    container: {
-      flex: 1,
-    },
-    backgroundImage: {
-      flex: 1,
-      width: '100%',
-    },
     overlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      ...common_styles.overlay,
       paddingTop: 80,
-      paddingBottom: 20,
     },
     content: {
-      flex: 1,
-      width: '100%',
-      maxWidth: 600,
-      alignSelf: 'center',
+      ...common_styles.content,
       paddingHorizontal: 15,
     },
     header: {

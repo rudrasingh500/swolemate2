@@ -1,33 +1,29 @@
 import { StyleSheet } from "react-native";
+import common_styles from "./common_style";
 
 const auth_styles = StyleSheet.create({
-    container: {
-      flex: 1,
-    },
-    backgroundImage: {
-      flex: 1,
-      width: '100%',
-    },
+    ...common_styles,
     overlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      ...common_styles.overlay,
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,
+      paddingTop: undefined,
+      paddingHorizontal: undefined,
+      paddingBottom: undefined,
     },
     content: {
-      width: '100%',
-      maxWidth: 600,
+      ...common_styles.content,
       alignItems: 'center',
+      flex: undefined,
     },
     title: {
-      color: 'white',
+      ...common_styles.title,
       fontSize: 48,
       fontWeight: 'bold',
-      marginBottom: 10,
     },
     subtitle: {
-      color: '#e0e0e0',
+      ...common_styles.subtitle,
       marginBottom: 40,
     },
     inputContainer: {
@@ -35,21 +31,8 @@ const auth_styles = StyleSheet.create({
       gap: 15,
     },
     input: {
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      padding: 15,
-      borderRadius: 10,
-      borderWidth: 1,
-      borderColor: 'rgba(255, 255, 255, 0.3)',
-      color: 'white',
-    },
-    buttonContainer: {
-      marginTop: 15,
-      width: '100%',
-    },
-    button: {
-      backgroundColor: '#e74c3c',
-      paddingVertical: 15,
-      borderRadius: 10,
+      ...common_styles.input,
+      marginBottom: undefined,
     },
     link: {
       marginTop: 20,
