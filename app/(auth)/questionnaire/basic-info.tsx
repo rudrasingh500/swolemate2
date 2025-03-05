@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { StyleSheet, View, TextInput, Alert, ImageBackground } from 'react-native';
+import { View, TextInput, Alert, ImageBackground } from 'react-native';
 import { Button, Text } from '@rneui/themed';
 import { router } from 'expo-router';
 import { supabase } from '../../../lib/supabase/supabase';
+import questionnaire_styles from '@/styles/questionnaire_style';
 
 export default function BasicInfo() {
   const [height, setHeight] = useState('');
@@ -44,20 +45,20 @@ export default function BasicInfo() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={questionnaire_styles.container}>
       <ImageBackground
         source={require('../../../assets/images/background.png')}
-        style={styles.backgroundImage}
+        style={questionnaire_styles.backgroundImage}
         resizeMode="cover"
       >
-        <View style={styles.overlay}>
-          <View style={styles.content}>
-            <Text h2 style={styles.title}>Basic Information</Text>
-            <Text style={styles.subtitle}>Step 1 of 5</Text>
+        <View style={questionnaire_styles.overlay}>
+          <View style={questionnaire_styles.content}>
+            <Text h2 style={questionnaire_styles.title}>Basic Information</Text>
+            <Text style={questionnaire_styles.subtitle}>Step 1 of 5</Text>
 
-            <View style={styles.inputContainer}>
+            <View style={questionnaire_styles.inputContainer}>
               <TextInput
-                style={styles.input}
+                style={questionnaire_styles.input}
                 placeholder="Height (cm)"
                 value={height}
                 onChangeText={setHeight}
@@ -65,7 +66,7 @@ export default function BasicInfo() {
                 placeholderTextColor="#999"
               />
               <TextInput
-                style={styles.input}
+                style={questionnaire_styles.input}
                 placeholder="Weight (kg)"
                 value={weight}
                 onChangeText={setWeight}
@@ -73,7 +74,7 @@ export default function BasicInfo() {
                 placeholderTextColor="#999"
               />
               <TextInput
-                style={styles.input}
+                style={questionnaire_styles.input}
                 placeholder="Age"
                 value={age}
                 onChangeText={setAge}
@@ -85,8 +86,8 @@ export default function BasicInfo() {
                 title="Next"
                 onPress={saveBasicInfo}
                 loading={loading}
-                containerStyle={styles.buttonContainer}
-                buttonStyle={styles.button}
+                containerStyle={questionnaire_styles.buttonContainer}
+                buttonStyle={questionnaire_styles.button}
               />
             </View>
           </View>
@@ -95,55 +96,3 @@ export default function BasicInfo() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  backgroundImage: {
-    flex: 1,
-    width: '100%',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  content: {
-    width: '100%',
-    maxWidth: 600,
-    alignItems: 'center',
-  },
-  title: {
-    color: 'white',
-    marginBottom: 10,
-  },
-  subtitle: {
-    color: '#e0e0e0',
-    fontSize: 18,
-    marginBottom: 40,
-  },
-  inputContainer: {
-    width: '100%',
-    gap: 15,
-  },
-  input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 15,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    color: 'white',
-  },
-  buttonContainer: {
-    marginTop: 15,
-    width: '100%',
-  },
-  button: {
-    backgroundColor: '#e74c3c',
-    paddingVertical: 15,
-    borderRadius: 10,
-  },
-});
