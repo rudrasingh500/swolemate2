@@ -1,13 +1,136 @@
-import { View, ScrollView, ImageBackground } from 'react-native';
-import { Text, Card, Button, Icon } from '@rneui/themed';
-import { useLocalSearchParams, router } from 'expo-router';
+import { View, ScrollView, ImageBackground, ActivityIndicator, Text } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import detail_styles from '@/styles/excercise-details_style';
 import exerciseLibrary from '@/constants/exercise_lib';
+import ExerciseHeader from '@/components/exercise/ExerciseHeader';
+import ExerciseOverview from '@/components/exercise/ExerciseOverview';
+import TargetMuscles from '@/components/exercise/TargetMuscles';
+import ExerciseInstructions from '@/components/exercise/ExerciseInstructions';
+import ExerciseBenefits from '@/components/exercise/ExerciseBenefits';
+import ExerciseGif from '@/components/exercise/ExerciseGif';
+import ExerciseEquipment from '@/components/exercise/ExerciseEquipment';
+import { fetchExercises } from '@/lib/api/exercise';
+
+interface ApiExercise {
+  bodyPart: string;
+  equipment: string;
+  gifUrl: string;
+  id: string;
+  name: string;
+  target: string;
+  secondaryMuscles: string[];
+  instructions: string[];
+}
+
+// Helper function to capitalize first letter of each word
+function capitalizeWords(text: string): string {
+  return text
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+// Helper function to convert plural exercise names to singular
+function singularizeExerciseName(name: string): string {
+  // Common plural endings
+  if (name.endsWith('s') && !name.endsWith('ss')) {
+    return name.slice(0, -1);
+  }
+  return name;
+}
 
 export default function ExerciseDetailsScreen() {
   const { name } = useLocalSearchParams();
-  const [exercise, setExercise] = useState(exerciseLibrary[name as keyof typeof exerciseLibrary]);
+  const [exercise, setExercise] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function getExerciseData() {
+      try {
+        setLoading(true);
+        // First try to get data from API
+        if (typeof name === 'string') {
+          // Process the search term to handle case sensitivity and plural forms
+          const processedName = singularizeExerciseName(name.toLowerCase().trim());
+          const exerciseData = await fetchExercises({ name: processedName, limit: 1 });
+          
+          if (exerciseData && exerciseData.length > 0) {
+            const apiExercise = exerciseData[0] as ApiExercise;
+            
+            // Format the exercise name (capitalize and singularize)
+            const formattedName = capitalizeWords(singularizeExerciseName(apiExercise.name));
+            
+            // Format bodyPart and equipment (capitalize)
+            const formattedBodyPart = capitalizeWords(apiExercise.bodyPart);
+            const formattedEquipment = capitalizeWords(apiExercise.equipment);
+            const formattedTarget = capitalizeWords(apiExercise.target);
+            
+            // Map API data to our component structure
+            setExercise({
+              name: formattedName,
+              gifUrl: apiExercise.gifUrl,
+              bodyPart: formattedBodyPart,
+              equipment: formattedEquipment,
+              description: `${formattedName} is a ${formattedBodyPart} exercise using ${formattedEquipment}.`,
+              duration: '30-45 mins', // Default values since API doesn't provide these
+              difficulty: 'Intermediate',
+              caloriesBurn: '200-300 kcal',
+              targetMuscles: [formattedTarget, ...apiExercise.secondaryMuscles.map(muscle => capitalizeWords(muscle))],
+              instructions: apiExercise.instructions.map(instruction => 
+                instruction.charAt(0).toUpperCase() + instruction.slice(1)
+              ),
+              benefits: [
+                `Targets the ${formattedTarget} muscle group`,
+                `Improves strength and endurance`,
+                `Uses ${formattedEquipment} for resistance`,
+                `Enhances ${formattedBodyPart} development`
+              ]
+            });
+            setLoading(false);
+            return;
+          }
+        }
+        
+        // Fallback to local data if API fails or no results
+        if (typeof name === 'string' && name in exerciseLibrary) {
+          setExercise(exerciseLibrary[name as keyof typeof exerciseLibrary]);
+        } else {
+          setError('Exercise not found');
+        }
+      } catch (err) {
+        console.error('Error fetching exercise:', err);
+        setError('Failed to load exercise data');
+        
+        // Fallback to local data if available
+        if (typeof name === 'string' && name in exerciseLibrary) {
+          setExercise(exerciseLibrary[name as keyof typeof exerciseLibrary]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    getExerciseData();
+  }, [name]);
+
+  if (loading) {
+    return (
+      <View style={[detail_styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#e74c3c" />
+        <Text style={{ marginTop: 20, color: '#fff' }}>Loading exercise details...</Text>
+      </View>
+    );
+  }
+
+  if (error || !exercise) {
+    return (
+      <View style={[detail_styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: '#fff', fontSize: 18 }}>{error || 'Exercise not found'}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={detail_styles.container}>
@@ -17,59 +140,29 @@ export default function ExerciseDetailsScreen() {
         resizeMode="cover"
       >
         <View style={detail_styles.overlay}>
-          <View style={detail_styles.header}>
-            <Button
-              icon={<Icon name="arrow-back" color="white" size={28} />}
-              title="Back"
-              type="clear"
-              onPress={() => router.back()}
-              containerStyle={detail_styles.backButton}
-              titleStyle={detail_styles.backButtonText}
-            />
-          </View>
-          <View style={detail_styles.titleContainer}>
-            <Text h4 style={detail_styles.title}>{exercise.name}</Text>
-          </View>
+          <ExerciseHeader title={exercise.name} />
           <ScrollView style={detail_styles.content}>
-            <Card containerStyle={detail_styles.card}>
-              <Text style={detail_styles.description}>{exercise.description}</Text>
-              <View style={detail_styles.metaInfo}>
-                <Text style={detail_styles.metaItem}>Duration: {exercise.duration}</Text>
-                <Text style={detail_styles.metaItem}>Difficulty: {exercise.difficulty}</Text>
-                <Text style={detail_styles.metaItem}>Calories: {exercise.caloriesBurn}</Text>
-              </View>
-            </Card>
+            {exercise.gifUrl && (
+              <ExerciseGif gifUrl={exercise.gifUrl} />
+            )}
+            
+            <ExerciseOverview 
+              description={exercise.description}
+              duration={exercise.duration}
+              difficulty={exercise.difficulty}
+              caloriesBurn={exercise.caloriesBurn}
+            />
+            
+            <ExerciseEquipment 
+              equipment={exercise.equipment}
+              bodyPart={exercise.bodyPart}
+            />
 
-            <Card containerStyle={detail_styles.card}>
-              <Card.Title style={detail_styles.cardTitle}>Target Muscles</Card.Title>
-              <View style={detail_styles.chipContainer}>
-                {exercise.targetMuscles.map((muscle, index) => (
-                  <View key={index} style={detail_styles.chip}>
-                    <Text style={detail_styles.chipText}>{muscle}</Text>
-                  </View>
-                ))}
-              </View>
-            </Card>
+            <TargetMuscles muscles={exercise.targetMuscles} />
 
-            <Card containerStyle={detail_styles.card}>
-              <Card.Title style={detail_styles.cardTitle}>Instructions</Card.Title>
-              {exercise.instructions.map((instruction, index) => (
-                <View key={index} style={detail_styles.instructionItem}>
-                  <Text style={detail_styles.instructionNumber}>{index + 1}</Text>
-                  <Text style={detail_styles.instructionText}>{instruction}</Text>
-                </View>
-              ))}
-            </Card>
+            <ExerciseInstructions instructions={exercise.instructions} />
 
-            <Card containerStyle={detail_styles.card}>
-              <Card.Title style={detail_styles.cardTitle}>Benefits</Card.Title>
-              {exercise.benefits.map((benefit, index) => (
-                <View key={index} style={detail_styles.benefitItem}>
-                  <Text style={detail_styles.bulletPoint}>•</Text>
-                  <Text style={detail_styles.benefitText}>{benefit}</Text>
-                </View>
-              ))}
-            </Card>
+            <ExerciseBenefits benefits={exercise.benefits} />
           </ScrollView>
         </View>
       </ImageBackground>
