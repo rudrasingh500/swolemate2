@@ -4,13 +4,15 @@ import { Text } from '@rneui/themed';
 import widget_style from '@/styles/health-widget_style';
 
 // Only import AppleHealthKit on iOS
-let AppleHealthKit: any = null;
+let AppleHealthKit: any;
 if (Platform.OS === 'ios') {
   try {
     AppleHealthKit = require('react-native-health').default;
   } catch (error) {
     console.error('Error loading react-native-health:', error);
   }
+} else {
+  console.log('HealthKit is only available on iOS');
 }
 
 // Define types for health data
@@ -44,6 +46,9 @@ export default function HealthWidgets() {
   }, []);
   
   const initializeHealthKit = () => {
+    console.log('Initializing HealthKit...');
+    console.log('Platform:', Platform.OS);
+    console.log('AppleHealthKit:', AppleHealthKit);
     if (Platform.OS === 'ios' && AppleHealthKit) {
       setHealthData(prev => ({ ...prev, isLoading: true, error: null }));
       
@@ -57,6 +62,7 @@ export default function HealthWidgets() {
           write: [],
         },
       };
+      console.log('Requesting permissions:', permissions);
       
       AppleHealthKit.initHealthKit(permissions, (error: string) => {
         if (error) {
@@ -73,6 +79,7 @@ export default function HealthWidgets() {
         fetchHealthData();
       });
     } else {
+      console.log('HealthKit is not available on this platform.');
       setHealthData(prev => ({ 
         ...prev, 
         isUsingMockData: true, 
