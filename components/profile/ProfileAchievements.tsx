@@ -3,14 +3,7 @@ import { Text, Button } from '@rneui/themed';
 import { useState } from 'react';
 import profile_styles from '@/styles/profile_style';
 
-interface Achievement {
-  id: number;
-  icon: string;
-  title: string;
-  description: string;
-  earnedDate?: string;
-  progress?: string;
-}
+import { Achievement } from '@/types/profile';
 
 interface ProfileAchievementsProps {
   achievements: Achievement[];
@@ -31,12 +24,23 @@ export default function ProfileAchievements({ achievements }: ProfileAchievement
           {achievements.map((achievement) => (
             <TouchableOpacity
               key={achievement.id}
-              style={profile_styles.achievementCard}
+              style={[
+                profile_styles.achievementCard,
+                achievement.isEarned ? { backgroundColor: 'rgba(231, 76, 60, 0.2)' } : {}
+              ]}
               onPress={() => setSelectedAchievement(achievement)}
             >
               <Text style={profile_styles.achievementIcon}>{achievement.icon}</Text>
               <Text style={profile_styles.achievementTitle}>{achievement.title}</Text>
               <Text style={profile_styles.achievementDesc}>{achievement.description}</Text>
+              <Text style={{
+                color: achievement.isEarned ? '#e74c3c' : '#a0a0a0',
+                fontSize: 10,
+                marginTop: 5,
+                textAlign: 'center'
+              }}>
+                {achievement.isEarned ? 'Completed' : `${achievement.progress}/${achievement.target}`}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -54,8 +58,8 @@ export default function ProfileAchievements({ achievements }: ProfileAchievement
                 <Text style={profile_styles.modalIcon}>{selectedAchievement.icon}</Text>
                 <Text style={profile_styles.modalTitle}>{selectedAchievement.title}</Text>
                 <Text style={profile_styles.modalDescription}>{selectedAchievement.description}</Text>
-                <Text style={profile_styles.modalDate}>Earned: {selectedAchievement.earnedDate}</Text>
-                <Text style={profile_styles.modalProgress}>Progress: {selectedAchievement.progress}</Text>
+                <Text style={profile_styles.modalDate}>Earned: {selectedAchievement.isEarned ? selectedAchievement.earnedDate : 'Not yet earned'}</Text>
+                <Text style={profile_styles.modalProgress}>Progress: {selectedAchievement.progress}/{selectedAchievement.target}</Text>
                 <Button
                   title="Close"
                   onPress={closeAchievementModal}

@@ -1,8 +1,10 @@
 export type Achievement = {
-  id: number;
+  id: string;
   icon: string;
   title: string;
   description: string;
-  earnedDate: string;
-  progress: string;
+  progress: number;
+  target: number;
+  earnedDate: string | null;
+  isEarned: boolean;
 };
