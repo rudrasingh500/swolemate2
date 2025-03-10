@@ -84,6 +84,64 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+      },
+      achievements: {
+        Row: {
+          id: string
+          icon: string
+          title: string
+          description: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          icon: string
+          title: string
+          description: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          icon?: string
+          title?: string
+          description?: string
+          created_at?: string
+          updated_at?: string
+        }
+      },
+      user_achievements: {
+        Row: {
+          id: string
+          profile_id: string
+          achievement_id: string
+          progress: number
+          target: number
+          earned_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          achievement_id: string
+          progress?: number
+          target: number
+          earned_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          achievement_id?: string
+          progress?: number
+          target?: number
+          earned_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
       }
     }
   }
