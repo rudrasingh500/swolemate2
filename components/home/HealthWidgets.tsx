@@ -2,18 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, ScrollView, Platform, Text as RNText, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Text } from '@rneui/themed';
 import widget_style from '@/styles/health-widget_style';
+import AppleHealthKit, { HealthKitPermissions, HealthInputOptions, HealthUnit } from 'react-native-health';
 
-// Only import AppleHealthKit on iOS
-let AppleHealthKit: any;
-if (Platform.OS === 'ios') {
-  try {
-    AppleHealthKit = require('react-native-health').default;
-  } catch (error) {
-    console.error('Error loading react-native-health:', error);
-  }
-} else {
-  console.log('HealthKit is only available on iOS');
-}
 
 // Define types for health data
 interface HealthData {
@@ -40,24 +30,26 @@ export default function HealthWidgets() {
     heartRateHistory: [{date: 'Day 1', value: 65}, {date: 'Day 2', value: 72}, {date: 'Day 3', value: 68}],
     sleepHistory: [{date: 'Day 1', hours: 6}, {date: 'Day 2', hours: 7.5}, {date: 'Day 3', hours: 8}],
   });
+  const [hasPermissions, setHasPermission] = useState(false);
 
-  useEffect(() => {
-    initializeHealthKit();
-  }, []);
+  // useEffect(() => {
+  //   initializeHealthKit();
+  // }, []);
   
   const initializeHealthKit = () => {
     console.log('Initializing HealthKit...');
     console.log('Platform:', Platform.OS);
-    console.log('AppleHealthKit:', AppleHealthKit);
     if (Platform.OS === 'ios' && AppleHealthKit) {
       setHealthData(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const permissions = {
+      const { Permissions } = AppleHealthKit.Constants;
+
+      const permissions: HealthKitPermissions = {
         permissions: {
           read: [
-            AppleHealthKit.Constants.Permissions.Steps,
-            AppleHealthKit.Constants.Permissions.HeartRate,
-            AppleHealthKit.Constants.Permissions.SleepAnalysis,
+            Permissions.Steps,
+            Permissions.HeartRate,
+            Permissions.SleepAnalysis,
           ],
           write: [],
         },
@@ -66,22 +58,22 @@ export default function HealthWidgets() {
       
       AppleHealthKit.initHealthKit(permissions, (error: string) => {
         if (error) {
-          console.log('[ERROR] Cannot grant permissions:', error);
+          console.error('Error initializing HealthKit:', error);
           setHealthData(prev => ({ 
             ...prev, 
-            isLoading: false, 
-            error: 'Failed to initialize HealthKit. Please check permissions.',
-            isUsingMockData: true
+            isUsingMockData: true, 
+            isLoading: false,
+            error: 'Failed to initialize HealthKit' 
           }));
           return;
         }
-        
+        setHasPermission(true);
         fetchHealthData();
       });
     } else {
       console.log('HealthKit is not available on this platform.');
       setHealthData(prev => ({ 
-        ...prev, 
+        ...prev,
         isUsingMockData: true, 
         error: Platform.OS === 'ios' ? 'HealthKit module not available' : 'HealthKit is only available on iOS'
       }));
@@ -340,7 +332,10 @@ export default function HealthWidgets() {
           </ScrollView>
           
           {(healthData.isUsingMockData || healthData.error) && (
-            <TouchableOpacity style={widget_style.refreshButton} onPress={initializeHealthKit}>
+            <TouchableOpacity style={widget_style.refreshButton} onPress={() => {
+              console.log('Connect to Health button clicked');
+              initializeHealthKit();
+            }}>
               <Text style={widget_style.refreshButtonText}>
                 {healthData.isUsingMockData ? 'Connect to Health' : 'Retry'}
               </Text>

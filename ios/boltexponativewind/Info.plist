@@ -28,7 +28,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>myapp</string>
-				<string>com.mitesh.swolemate</string>
+				<string>com.swolemate.swolemate</string>
 			</array>
 		</dict>
 	</array>
