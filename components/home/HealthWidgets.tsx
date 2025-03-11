@@ -49,7 +49,7 @@ export default function HealthWidgets() {
           read: [
             Permissions.Steps,
             Permissions.HeartRate,
-            Permissions.SleepAnalysis,
+            Permissions.SleepAnalysis
           ],
           write: [],
         },
@@ -123,28 +123,40 @@ export default function HealthWidgets() {
           reject(error);
           return;
         }
-        
+  
         if (results.length === 0) {
-          // No data available, keep using mock data for steps
           resolve(null);
           return;
         }
-        
-        const stepsHistory = results
-          .map(item => ({
-            date: formatDate(new Date(item.startDate)),
-            steps: Math.round(item.value)
+  
+        // Aggregate step counts by full date (YYYY-MM-DD)
+        const stepsByDate: Record<string, number> = {};
+        console.log("results: ", results)
+  
+        results.forEach(item => {
+          const dateKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(item.startDate));
+          stepsByDate[dateKey] = (stepsByDate[dateKey] || 0) + Math.round(item.value);
+        });
+        console.log('Steps by date:', stepsByDate);
+  
+        // Convert to sorted array
+        const stepsHistory = Object.entries(stepsByDate)
+          .map(([date, steps]) => ({
+            date: formatDate(new Date(date)),
+            steps: Math.round(steps)
           }))
-          .slice(-3); // Keep only the last 3 days
-
+          .slice(-3);
+          
         const todaySteps = stepsHistory.length > 0 ? stepsHistory[stepsHistory.length - 1].steps : 0;
-
+        console.log('Today steps:', todaySteps);
+        console.log('Steps history:', stepsHistory);
+  
         setHealthData(prev => ({
           ...prev,
           steps: todaySteps,
           stepsHistory
         }));
-        
+  
         resolve(null);
       });
     });
@@ -180,7 +192,7 @@ export default function HealthWidgets() {
             date: item.date,
             value: Math.round(item.values.reduce((a: number, b: number) => a + b, 0) / item.values.length)
           }))
-          .slice(-3);
+          .slice(-5);
 
         const latestHeartRate = results.length > 0 ? Math.round(results[results.length - 1].value) : 0;
 
@@ -229,7 +241,7 @@ export default function HealthWidgets() {
             date: item.date,
             hours: Number(item.hours.toFixed(1))
           }))
-          .slice(-3);
+          .slice(-5);
 
         const todaySleep = sleepHistory.length > 0 ? sleepHistory[sleepHistory.length - 1].hours : 0;
 
@@ -251,17 +263,27 @@ export default function HealthWidgets() {
   };
 
   // Simple chart visualization using View elements
-  const renderSimpleChart = (data: any[], maxValue: number, color: string = '#e74c3c') => {
+  const renderSimpleChart = (data: any[], type: string, color: string = '#e74c3c') => {
+    let maxValue = 0;
+    if (type === 'steps') {
+      maxValue = Math.max(...data.map(item => item.steps));
+    } else if (type === 'heart rate') {
+      maxValue = Math.max(...data.map(item => item.value));
+    } else if (type === 'sleep') {
+      maxValue = Math.max(...data.map(item => item.hours));
+    } else {
+      console.error('Invalid chart type:', type);
+    }
     return (
       <View style={widget_style.chartContainer}>
         {data.map((item, index) => {
           const value = item.value || item.steps || item.hours || 0;
-          const height = (value / maxValue) * 100;
+          const height = (value / maxValue) * 60;
           return (
             <View key={index} style={widget_style.chartColumn}>
               <View 
                 style={[
-                  widget_style.chartBar, 
+                  widget_style.chartBar,
                   { height: `${Math.max(5, height)}%`, backgroundColor: color }
                 ]} 
               />
@@ -310,7 +332,7 @@ export default function HealthWidgets() {
               <Text style={widget_style.title}>Steps</Text>
               <Text style={widget_style.value}>{healthData.steps.toLocaleString()}</Text>
               <View style={widget_style.chartPlaceholder}>
-                {renderSimpleChart(healthData.stepsHistory, 10000, '#e74c3c')}
+                {renderSimpleChart(healthData.stepsHistory, "steps", '#e74c3c')}
               </View>
             </View>
 
@@ -318,7 +340,7 @@ export default function HealthWidgets() {
               <Text style={widget_style.title}>Heart Rate</Text>
               <Text style={widget_style.value}>{healthData.heartRate} BPM</Text>
               <View style={widget_style.chartPlaceholder}>
-                {renderSimpleChart(healthData.heartRateHistory, 100, '#3498db')}
+                {renderSimpleChart(healthData.heartRateHistory, "heart rate", '#3498db')}
               </View>
             </View>
 
@@ -326,7 +348,7 @@ export default function HealthWidgets() {
               <Text style={widget_style.title}>Sleep</Text>
               <Text style={widget_style.value}>{healthData.sleepHours.toFixed(1)}h</Text>
               <View style={widget_style.chartPlaceholder}>
-                {renderSimpleChart(healthData.sleepHistory, 10, '#9b59b6')}
+                {renderSimpleChart(healthData.sleepHistory, "sleep", '#9b59b6')}
               </View>
             </View>
           </ScrollView>
