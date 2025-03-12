@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, ScrollView, Platform, Text as RNText, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Text } from '@rneui/themed';
 import widget_style from '@/styles/health-widget_style';
-import AppleHealthKit, { HealthKitPermissions, HealthInputOptions, HealthUnit } from 'react-native-health';
+import AppleHealthKit, { HealthKitPermissions, HealthInputOptions, HealthUnit, HealthValue } from 'react-native-health';
 
 
 // Define types for health data
@@ -116,48 +116,72 @@ export default function HealthWidgets() {
   };
 
   const fetchStepsData = (options: any) => {
-    return new Promise((resolve, reject) => {
-      AppleHealthKit.getDailyStepCountSamples(options, (error: string, results: any[]) => {
-        if (error) {
-          console.error('Error fetching steps:', error);
-          reject(error);
-          return;
-        }
-  
-        if (results.length === 0) {
-          resolve(null);
-          return;
-        }
-  
-        // Aggregate step counts by full date (YYYY-MM-DD)
-        const stepsByDate: Record<string, number> = {};
-        console.log("results: ", results)
-  
-        results.forEach(item => {
-          const dateKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(item.startDate));
-          stepsByDate[dateKey] = (stepsByDate[dateKey] || 0) + Math.round(item.value);
-        });
-        console.log('Steps by date:', stepsByDate);
-  
-        // Convert to sorted array
-        const stepsHistory = Object.entries(stepsByDate)
-          .map(([date, steps]) => ({
-            date: formatDate(new Date(date)),
-            steps: Math.round(steps)
-          }))
-          .slice(-3);
+    return new Promise(async (resolve, reject) => {
+      try {
+        const stepsHistory: { date: string; steps: number }[] = [];
+        const endDate = new Date(options.endDate);
+        
+        for (let i = 2; i >= 0; i--) {
+          const date = new Date(endDate);
+          date.setDate(endDate.getDate() - i);
           
+          const dayStartDate = new Date(date);
+          dayStartDate.setHours(0, 0, 0, 0);
+          
+          const dayEndDate = new Date(date);
+          dayEndDate.setHours(23, 59, 59, 999);
+          console.log(`Fetching steps for date: ${date.toLocaleDateString()}`);
+          console.log(`Day start: ${dayStartDate.toLocaleDateString()}, Day end: ${dayEndDate.toLocaleDateString()}`);
+          
+          const dayOptions = {
+            date: dayStartDate.toISOString(),
+            includeManuallyAdded: options.includeManuallyAdded
+          };
+          
+          const daySteps = await getStepCountForDay(dayOptions);
+          
+          stepsHistory.push({
+            date: formatDate(date),
+            steps: daySteps
+          });
+        }
+        
+        console.log('Steps history:', stepsHistory);
+        
         const todaySteps = stepsHistory.length > 0 ? stepsHistory[stepsHistory.length - 1].steps : 0;
         console.log('Today steps:', todaySteps);
-        console.log('Steps history:', stepsHistory);
-  
+        
         setHealthData(prev => ({
           ...prev,
           steps: todaySteps,
           stepsHistory
         }));
-  
+        
         resolve(null);
+      } catch (error) {
+        console.error('Error fetching steps:', error);
+        reject(error);
+      }
+    });
+  };
+  
+  const getStepCountForDay = (options: any): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      console.log(`Fetching steps for date: ${options.date}`);
+      AppleHealthKit.getStepCount(options, (error: string, results: HealthValue) => {
+        if (error) {
+          console.error(`Error fetching steps for ${options.date}:`, error);
+          reject(error);
+          return;
+        }
+        
+        if (!results || results.value === null) {
+          resolve(0);
+          return;
+        }
+        
+        console.log(`Steps for ${options.date.split('T')[0]}:`, results.value);
+        resolve(results.value);
       });
     });
   };
