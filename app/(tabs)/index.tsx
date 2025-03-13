@@ -1,4 +1,4 @@
-import { View, ImageBackground, ActivityIndicator } from 'react-native';
+import { View, ImageBackground, ActivityIndicator, ScrollView } from 'react-native';
 import { Text, Button } from '@rneui/themed';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase/supabase';
@@ -9,6 +9,7 @@ import { WorkoutPlan } from '@/types/workout';
 import WorkoutList from '@/components/home/WorkoutList';
 import StreakDisplay from '@/components/home/StreakDisplay';
 import EmptyStateView from '@/components/home/EmptyStateView';
+import HealthWidgets from '@/components/home/HealthWidgets';
 
 export default function TabsMainScreen() {
   const navigation = useNavigation();
@@ -245,9 +246,9 @@ export default function TabsMainScreen() {
           resizeMode="cover"
         >
           <View style={home_styles.overlay}>
-            <View style={home_styles.content}>
+            <ScrollView style={home_styles.content} contentContainerStyle={{ flexGrow: 1 }}>
               <EmptyStateView workoutStreak={workoutStreak} />
-            </View>
+            </ScrollView>
           </View>
         </ImageBackground>
       </View>
@@ -261,8 +262,10 @@ export default function TabsMainScreen() {
         resizeMode="cover"
       >
         <View style={home_styles.overlay}>
-          <View style={home_styles.content}>
+          <ScrollView style={home_styles.content} contentContainerStyle={{ flexGrow: 1 }}>
             <StreakDisplay streak={workoutStreak} />
+            
+            <HealthWidgets />
 
             <View style={home_styles.workoutsContainer}>
               <WorkoutList 
@@ -285,7 +288,7 @@ export default function TabsMainScreen() {
                 buttonStyle={[home_styles.analysisButton, { borderRadius: 10, backgroundColor: '#e74c3c' }]}
               />
             </View>
-          </View>
+          </ScrollView>
         </View>
       </ImageBackground>
     </View>
