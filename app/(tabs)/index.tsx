@@ -1,4 +1,4 @@
-import { View, ImageBackground, ActivityIndicator, ScrollView } from 'react-native';
+import { View, ImageBackground, ActivityIndicator, ScrollView, Modal } from 'react-native';
 import { Text, Button } from '@rneui/themed';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase/supabase';
@@ -6,10 +6,14 @@ import { Database } from '../../lib/supabase/supabase.types';
 import { router, useNavigation } from 'expo-router';
 import home_styles from '@/styles/home_style';
 import { WorkoutPlan } from '@/types/workout';
+import { ExerciseType, LogData, WorkoutInProgress } from '@/types/workout-log';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import WorkoutList from '@/components/home/WorkoutList';
 import StreakDisplay from '@/components/home/StreakDisplay';
 import EmptyStateView from '@/components/home/EmptyStateView';
 import HealthWidgets from '@/components/home/HealthWidgets';
+import LoggingModal from '@/components/workout/LoggingModal';
+import WorkoutHistory from '@/components/workout/WorkoutHistory';
 
 export default function TabsMainScreen() {
   const navigation = useNavigation();
@@ -18,18 +22,47 @@ export default function TabsMainScreen() {
   const [workoutStreak, setWorkoutStreak] = useState(0);
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [tomorrowWorkouts, setTomorrowWorkouts] = useState<any[]>([]);
+  const [loggingModalVisible, setLoggingModalVisible] = useState(false);
+  const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
+  const [workoutsInProgress, setWorkoutsInProgress] = useState<Record<string, WorkoutInProgress>>({});
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [workoutToRemove, setWorkoutToRemove] = useState<number | null>(null);
 
   useEffect(() => {
     fetchWorkoutPlan();
+    loadWorkoutsInProgress();
 
     // Add focus listener
     const unsubscribe = navigation.addListener('focus', () => {
       fetchWorkoutPlan();
+      loadWorkoutsInProgress();
     });
 
     // Cleanup subscription on unmount
     return unsubscribe;
   }, [navigation]);
+  
+  // Load workouts in progress from AsyncStorage
+  const loadWorkoutsInProgress = async () => {
+    try {
+      const savedWorkouts = await AsyncStorage.getItem('workoutsInProgress');
+      if (savedWorkouts) {
+        setWorkoutsInProgress(JSON.parse(savedWorkouts));
+      }
+    } catch (error) {
+      console.error('Error loading workouts in progress:', error);
+    }
+  };
+  
+  // Save workouts in progress to AsyncStorage
+  const saveWorkoutsInProgress = async (workouts: Record<string, WorkoutInProgress>) => {
+    try {
+      await AsyncStorage.setItem('workoutsInProgress', JSON.stringify(workouts));
+    } catch (error) {
+      console.error('Error saving workouts in progress:', error);
+    }
+  };
 
   const fetchWorkoutPlan = async () => {
     try {
@@ -114,12 +147,110 @@ export default function TabsMainScreen() {
     }
   };
 
-  const toggleWorkoutCompletion = async (id: number) => {
+  // Handle workout selection for logging
+  const handleWorkoutSelection = (id: number) => {
+    const workout = workouts.find(w => w.id === id);
+    if (!workout) return;
+    
+    if (workout.completed) {
+      // If already completed, show confirmation dialog
+      setWorkoutToRemove(id);
+      setShowConfirmDialog(true);
+    } else {
+      // Check if there's a workout in progress
+      const inProgressData = workoutsInProgress[workout.name];
+      setSelectedWorkout(workout);
+      setLoggingModalVisible(true);
+    }
+  };
+  
+  // Handle confirmation of workout removal
+  const handleConfirmRemoval = () => {
+    if (workoutToRemove !== null) {
+      // If confirmed, toggle it off and delete the log
+      toggleWorkoutCompletion(workoutToRemove, false);
+      setWorkoutToRemove(null);
+    }
+    setShowConfirmDialog(false);
+  };
+
+  // Handle workout log submission
+  const handleLogSubmit = async (workoutLogData: LogData, exerciseType: ExerciseType, notes: string, complete: boolean) => {
+    if (!workoutPlan || !selectedWorkout) return;
+
+    try {
+      const now = new Date().toISOString();
+      
+      if (complete) {
+        // Save workout log to database
+        const { data: savedLog, error: logError } = await supabase
+          .from('workout_logs')
+          .insert({
+            profile_id: workoutPlan.profile_id,
+            workout_plan_id: workoutPlan.id,
+            exercise_name: selectedWorkout.name,
+            exercise_type: exerciseType,
+            log_data: workoutLogData,
+            notes: notes,
+            logged_at: now
+          })
+          .select()
+          .single();
+
+        if (logError) throw logError;
+
+        // Mark workout as completed
+        await toggleWorkoutCompletion(selectedWorkout.id, true);
+        
+        // Remove from workouts in progress if it exists
+        if (workoutsInProgress[selectedWorkout.name]) {
+          const updatedWorkouts = { ...workoutsInProgress };
+          delete updatedWorkouts[selectedWorkout.name];
+          setWorkoutsInProgress(updatedWorkouts);
+          saveWorkoutsInProgress(updatedWorkouts);
+        }
+        
+        // Trigger history refresh
+        setHistoryRefreshTrigger(prev => prev + 1);
+        
+        // Fetch workout plan to refresh the UI
+        fetchWorkoutPlan();
+      } else {
+        // Save workout in progress to local storage
+        const updatedWorkouts = {
+          ...workoutsInProgress,
+          [selectedWorkout.name]: {
+            exerciseName: selectedWorkout.name,
+            exerciseType,
+            logData: workoutLogData,
+            notes
+          }
+        };
+        setWorkoutsInProgress(updatedWorkouts);
+        saveWorkoutsInProgress(updatedWorkouts);
+        
+        // Update UI to show workout is in progress
+        const updatedWorkoutsList = workouts.map(w => 
+          w.id === selectedWorkout.id ? { ...w, inProgress: true } : w
+        );
+        setWorkouts(updatedWorkoutsList);
+      }
+      
+      // Close modal
+      setLoggingModalVisible(false);
+      setSelectedWorkout(null);
+    } catch (error) {
+      console.error('Error submitting workout log:', error);
+    }
+  };
+
+  // Toggle workout completion
+  const toggleWorkoutCompletion = async (id: number, completed: boolean) => {
     if (!workoutPlan) return;
 
     try {
       const updatedWorkouts = workouts.map(workout =>
-        workout.id === id ? { ...workout, completed: !workout.completed } : workout
+        workout.id === id ? { ...workout, completed } : workout
       );
       
       const workout = workouts.find(w => w.id === id);
@@ -144,17 +275,67 @@ export default function TabsMainScreen() {
       if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
 
       if (existingCompletion) {
-        // Update existing record
-        const { error: updateError } = await supabase
-          .from('completed_workouts')
-          .update({
-            is_active: updatedWorkouts.find(w => w.id === id)?.completed,
-            updated_at: now
-          })
-          .eq('id', existingCompletion.id);
+        if (completed) {
+          // Update existing record
+          const { error: updateError } = await supabase
+            .from('completed_workouts')
+            .update({
+              is_active: true,
+              updated_at: now
+            })
+            .eq('id', existingCompletion.id);
 
-        if (updateError) throw updateError;
-      } else if (updatedWorkouts.find(w => w.id === id)?.completed) {
+          if (updateError) throw updateError;
+        } else {
+          // Delete the workout log when unchecking - with more specific query
+          console.log('Attempting to delete workout log for:', workout.name);
+          
+          // First, find the log ID to delete
+          const { data: logToDelete, error: findLogError } = await supabase
+            .from('workout_logs')
+            .select('id')
+            .eq('profile_id', workoutPlan.profile_id)
+            .eq('exercise_name', workout.name)
+            .gte('logged_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
+            .lte('logged_at', new Date(new Date().setHours(23, 59, 59, 999)).toISOString());
+            
+          if (findLogError) {
+            console.error('Error finding workout log to delete:', findLogError);
+          } else if (logToDelete && logToDelete.length > 0) {
+            console.log('Found logs to delete:', logToDelete);
+            
+            // Delete each log found
+            for (const log of logToDelete) {
+              const { error: deleteLogError } = await supabase
+                .from('workout_logs')
+                .delete()
+                .eq('id', log.id);
+                
+              if (deleteLogError) {
+                console.error('Error deleting workout log:', deleteLogError);
+              } else {
+                console.log('Successfully deleted workout log with ID:', log.id);
+              }
+            }
+            
+            // Trigger history refresh after successful deletion
+            setHistoryRefreshTrigger(prev => prev + 1);
+          } else {
+            console.log('No workout logs found to delete');
+          }
+          
+          // Update completion record
+          const { error: updateError } = await supabase
+            .from('completed_workouts')
+            .update({
+              is_active: false,
+              updated_at: now
+            })
+            .eq('id', existingCompletion.id);
+
+          if (updateError) throw updateError;
+        }
+      } else if (completed) {
         // Insert new completion record
         const { error: completionError } = await supabase
           .from('completed_workouts')
@@ -185,18 +366,20 @@ export default function TabsMainScreen() {
           current_streak: newStreak,
           longest_streak: Math.max(newStreak, workoutPlan.longest_streak || 0),
           last_workout_date: now,
-          plan_data: workoutPlan.plan_data?.map((day: any) => {
-            if (day.day === today) {
-              return {
-                ...day,
-                exercises: day.exercises.map((exercise: any, index: number) => ({
-                  ...exercise,
-                  completed: updatedWorkouts.find(w => w.id === index + 1)?.completed || false
-                }))
-              };
-            }
-            return day;
-          })
+          plan_data: typeof workoutPlan.plan_data === 'object' && Array.isArray(workoutPlan.plan_data) 
+            ? workoutPlan.plan_data.map((day: any) => {
+                if (day.day === today) {
+                  return {
+                    ...day,
+                    exercises: day.exercises.map((exercise: any, index: number) => ({
+                      ...exercise,
+                      completed: updatedWorkouts.find(w => w.id === index + 1)?.completed || false
+                    }))
+                  };
+                }
+                return day;
+              })
+            : workoutPlan.plan_data
         })
         .eq('id', workoutPlan.id);
 
@@ -211,18 +394,20 @@ export default function TabsMainScreen() {
           ...workoutPlan,
           current_streak: newStreak,
           longest_streak: Math.max(newStreak, workoutPlan.longest_streak || 0),
-          plan_data: workoutPlan.plan_data.map((day: any) => {
-            if (day.day === today) {
-              return {
-                ...day,
-                exercises: day.exercises.map((exercise: any, index: number) => ({
-                  ...exercise,
-                  completed: updatedWorkouts.find(w => w.id === index + 1)?.completed || false
-                }))
-              };
-            }
-            return day;
-          })
+          plan_data: typeof workoutPlan.plan_data === 'object' && Array.isArray(workoutPlan.plan_data)
+            ? workoutPlan.plan_data.map((day: any) => {
+                if (day.day === today) {
+                  return {
+                    ...day,
+                    exercises: day.exercises.map((exercise: any, index: number) => ({
+                      ...exercise,
+                      completed: updatedWorkouts.find(w => w.id === index + 1)?.completed || false
+                    }))
+                  };
+                }
+                return day;
+              })
+            : workoutPlan.plan_data
         });
       }
     } catch (error) {
@@ -268,17 +453,32 @@ export default function TabsMainScreen() {
             <HealthWidgets />
 
             <View style={home_styles.workoutsContainer}>
-              <WorkoutList 
-                title="Today's Workouts" 
-                workouts={workouts} 
-                onToggleCompletion={toggleWorkoutCompletion} 
-              />
+            <WorkoutList 
+              title="Today's Workouts" 
+              workouts={workouts.map(workout => ({
+                ...workout,
+                inProgress: !!workoutsInProgress[workout.name]
+              }))} 
+              onToggleCompletion={handleWorkoutSelection}
+              profileId={workoutPlan.profile_id}
+              showProgress={true}
+            />
+              
+              {workoutPlan && (
+                <WorkoutHistory 
+                  profileId={workoutPlan.profile_id} 
+                  onViewAllHistory={() => {}} 
+                  refreshTrigger={historyRefreshTrigger}
+                />
+              )}
 
               <WorkoutList 
                 title="Tomorrow's Plans" 
                 workouts={tomorrowWorkouts} 
                 isPlanned={true} 
-                style={{ marginTop: 30 }} 
+                style={{ marginTop: 30 }}
+                profileId={workoutPlan.profile_id}
+                showProgress={false}
               />
 
               <Button
@@ -289,6 +489,53 @@ export default function TabsMainScreen() {
               />
             </View>
           </ScrollView>
+          
+          {/* Workout Logging Modal */}
+          {selectedWorkout && (
+            <LoggingModal
+              isVisible={loggingModalVisible}
+              onClose={() => {
+                setLoggingModalVisible(false);
+                setSelectedWorkout(null);
+              }}
+              onSubmit={handleLogSubmit}
+              exerciseName={selectedWorkout.name}
+              savedData={workoutsInProgress[selectedWorkout.name]}
+            />
+          )}
+          
+          {/* Confirmation Dialog */}
+          <Modal
+            visible={showConfirmDialog}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setShowConfirmDialog(false)}
+          >
+            <View style={home_styles.confirmationOverlay}>
+              <View style={home_styles.confirmationDialog}>
+                <Text style={home_styles.confirmationTitle}>Remove Workout</Text>
+                <Text style={home_styles.confirmationText}>
+                  Are you sure you want to remove this completed workout? This will delete the workout log.
+                </Text>
+                <View style={home_styles.confirmationButtons}>
+                  <Button
+                    title="Cancel"
+                    type="outline"
+                    buttonStyle={home_styles.cancelButton}
+                    titleStyle={home_styles.cancelButtonText}
+                    onPress={() => setShowConfirmDialog(false)}
+                    containerStyle={{ flex: 1, marginRight: 10 }}
+                  />
+                  <Button
+                    title="Remove"
+                    buttonStyle={home_styles.removeButton}
+                    onPress={handleConfirmRemoval}
+                    containerStyle={{ flex: 1 }}
+                  />
+                </View>
+              </View>
+            </View>
+          </Modal>
         </View>
       </ImageBackground>
     </View>

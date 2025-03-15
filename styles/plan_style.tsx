@@ -106,11 +106,14 @@ const plan_styles = StyleSheet.create({
       color: '#e0e0e0',
       fontSize: 14,
     },
+    exerciseContainer: {
+      marginBottom: 15,
+    },
     exerciseItem: {
       backgroundColor: 'rgba(255, 255, 255, 0.05)',
       borderRadius: 8,
       padding: 12,
-      marginBottom: 8,
+      marginBottom: 0,
     },
     exerciseHeader: {
       flexDirection: 'row',
@@ -130,6 +133,27 @@ const plan_styles = StyleSheet.create({
     exerciseDetails: {
       color: '#e0e0e0',
       fontSize: 14,
+    },
+    expandButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+      paddingVertical: 8,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
+    },
+    expandButtonText: {
+      color: '#e74c3c',
+      fontSize: 14,
+      marginRight: 5,
+    },
+    progressContainer: {
+      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+      borderRadius: 8,
+      padding: 10,
+      marginTop: 5,
+      overflow: 'hidden',
     },
     aiSection: {
       backgroundColor: 'rgba(231, 76, 60, 0.1)',
@@ -171,9 +195,9 @@ const plan_styles = StyleSheet.create({
       textAlign: 'center',
     },
     plansGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-      gap: 20,
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
       paddingHorizontal: 10,
       width: '100%',
     },

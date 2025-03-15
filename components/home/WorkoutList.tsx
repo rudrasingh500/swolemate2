@@ -2,12 +2,16 @@ import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { Text } from '@rneui/themed';
 import { router } from 'expo-router';
 import home_styles from '@/styles/home_style';
+import ProgressChart from '@/components/workout/ProgressChart';
+import { supabase } from '@/lib/supabase/supabase';
+import { useState, useEffect } from 'react';
 
 interface WorkoutItem {
   id: number;
   name: string;
   duration: string;
   completed?: boolean;
+  inProgress?: boolean;
 }
 
 interface WorkoutListProps {
@@ -16,9 +20,36 @@ interface WorkoutListProps {
   onToggleCompletion?: (id: number) => void;
   isPlanned?: boolean;
   style?: object;
+  profileId?: string;
+  showProgress?: boolean;
 }
 
-export default function WorkoutList({ title, workouts, onToggleCompletion, isPlanned = false, style }: WorkoutListProps) {
+export default function WorkoutList({ 
+  title, 
+  workouts, 
+  onToggleCompletion, 
+  isPlanned = false, 
+  style,
+  profileId,
+  showProgress = true
+}: WorkoutListProps) {
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (profileId) {
+      setUserId(profileId);
+    } else {
+      // Get the current user if profileId is not provided
+      const getCurrentUser = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+        }
+      };
+      
+      getCurrentUser();
+    }
+  }, [profileId]);
   return (
     <>
       <Text style={[home_styles.sectionTitle, style]}>{title}</Text>
@@ -35,9 +66,13 @@ export default function WorkoutList({ title, workouts, onToggleCompletion, isPla
                   });
                 }}
               >
-                <View>
-                  <Text style={home_styles.workoutName}>{workout.name}</Text>
-                  <Text style={home_styles.workoutDuration}>{workout.duration}</Text>
+                <View style={home_styles.workoutInfoContent}>
+                  <View>
+                    <Text style={home_styles.workoutName}>{workout.name}</Text>
+                    <Text style={home_styles.workoutDuration}>{workout.duration}</Text>
+                  </View>
+                  
+                  {/* Mini progress chart removed as requested */}
                 </View>
               </TouchableOpacity>
               <View style={home_styles.statusContainer}>
@@ -45,8 +80,13 @@ export default function WorkoutList({ title, workouts, onToggleCompletion, isPla
                   <Text style={[home_styles.workoutStatus, home_styles.planned]}>Planned</Text>
                 ) : (
                   <>
-                    <Text style={[home_styles.workoutStatus, workout.completed ? home_styles.completed : home_styles.scheduled]}>
-                      {workout.completed ? 'Completed' : 'Scheduled'}
+                    <Text style={[
+                      home_styles.workoutStatus, 
+                      workout.completed ? home_styles.completed : 
+                      workout.inProgress ? home_styles.inProgress : 
+                      home_styles.scheduled
+                    ]}>
+                      {workout.completed ? 'Completed' : workout.inProgress ? 'In Progress' : 'Scheduled'}
                     </Text>
                     {onToggleCompletion && (
                       <TouchableOpacity

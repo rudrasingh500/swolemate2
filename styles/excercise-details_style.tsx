@@ -91,18 +91,6 @@ const detail_styles = StyleSheet.create({
       borderRadius: 5,
       fontSize: 14,
     },
-    chipContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 10,
-    },
-    chip: {
-      backgroundColor: 'rgba(231, 76, 60, 0.3)',
-      paddingVertical: 6,
-      paddingHorizontal: 12,
-      borderRadius: 20,
-      marginBottom: 8,
-    },
     gifContainer: {
       width: '100%',
       aspectRatio: 1/1,
@@ -171,6 +159,19 @@ const detail_styles = StyleSheet.create({
       color: 'white',
       fontSize: 18,
       textAlign: 'center',
+    },
+    progressSection: {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      borderColor: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: 10,
+      marginBottom: 20,
+      padding: 15,
+    },
+    progressTitle: {
+      color: 'white',
+      fontSize: 20,
+      textAlign: 'left',
+      marginBottom: 15,
     },
 });
 
