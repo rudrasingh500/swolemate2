@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { View, Dimensions, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { Text, Card, Button } from '@rneui/themed';
 import { LineChart } from 'react-native-chart-kit';
 import { supabase } from '@/lib/supabase/supabase';
 import { format, subDays, subMonths, parseISO } from 'date-fns';
+import chart_styles from '@/styles/progress-chart_style';
 
 interface ProgressChartProps {
   profileId: string;
@@ -279,21 +280,21 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
     
     if (mini) {
       return (
-        <View style={styles.miniContainer}>
-          <Text style={styles.miniText}>No data yet</Text>
+        <View style={chart_styles.miniContainer}>
+          <Text style={chart_styles.miniText}>No data yet</Text>
         </View>
       );
     }
     
     return (
-      <Card containerStyle={styles.darkCard}>
-        <Card.Title style={styles.cardTitle}>Progress Chart: {exerciseName}</Card.Title>
-        <Text style={styles.noDataText}>No progress data available yet.</Text>
-        <Text style={styles.noDataSubtext}>Complete a workout to see your progress!</Text>
+      <Card containerStyle={chart_styles.darkCard}>
+        <Card.Title style={chart_styles.cardTitle}>Progress Chart: {exerciseName}</Card.Title>
+        <Text style={chart_styles.noDataText}>No progress data available yet.</Text>
+        <Text style={chart_styles.noDataSubtext}>Complete a workout to see your progress!</Text>
         
         <LineChart
           data={dummyData}
-          width={Dimensions.get('window').width - 60}
+          width={Dimensions.get('window').width - 40}
           height={220}
           chartConfig={{
             backgroundColor: '#222',
@@ -311,7 +312,7 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
             },
           }}
           bezier
-          style={styles.chart}
+          style={chart_styles.chart}
           withDots={false}
           withShadow={false}
           withInnerLines={false}
@@ -328,18 +329,18 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
   // Mini chart version (simplified for display in exercise list)
   if (mini) {
     return (
-      <View style={styles.miniContainer}>
+      <View style={chart_styles.miniContainer}>
         {isLoading ? (
-          <Text style={styles.miniText}>Loading...</Text>
+          <Text style={chart_styles.miniText}>Loading...</Text>
         ) : chartData.datasets[0].data.every((val: number) => val === 0) ? (
-          <Text style={styles.miniText}>No data yet</Text>
+          <Text style={chart_styles.miniText}>No data yet</Text>
         ) : (
           <>
-            <Text style={styles.miniTitle}>Progress</Text>
+            <Text style={chart_styles.miniTitle}>Progress</Text>
             <LineChart
               data={chartData}
-              width={120}
-              height={80}
+              width={Dimensions.get('window').width - 60}
+              height={70}
               chartConfig={{
                 backgroundColor: '#222',
                 backgroundGradientFrom: '#222',
@@ -355,16 +356,28 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
                   strokeWidth: '1',
                   stroke: '#e74c3c',
                 },
+                propsForBackgroundLines: {
+                  strokeWidth: 1,
+                  strokeDasharray: '3, 3',
+                  stroke: 'rgba(255, 255, 255, 0.05)',
+                },
+                propsForLabels: {
+                  fontSize: 10,
+                  fontWeight: 'bold',
+                },
+                paddingLeft: 15,
+                paddingRight: 0,
               }}
               bezier
-              style={styles.miniChart}
+              style={chart_styles.miniChart}
               withDots={chartData.datasets[0].data.length > 1}
               withInnerLines={false}
-              withOuterLines={false}
+              withOuterLines={true}
               withVerticalLines={false}
-              withHorizontalLines={false}
+              withHorizontalLines={true}
               withVerticalLabels={false}
               withHorizontalLabels={false}
+              fromZero={true}
             />
           </>
         )}
@@ -375,36 +388,36 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
   // Full chart version
   return (
     <>
-      <Card containerStyle={styles.darkCard}>
-        <Card.Title style={styles.cardTitle}>Progress Chart: {exerciseName}</Card.Title>
+      <Card containerStyle={chart_styles.darkCard}>
+        <Card.Title style={chart_styles.cardTitle}>Progress Chart: {exerciseName}</Card.Title>
         
-        <View style={styles.metricSelector}>
+        <View style={chart_styles.metricSelector}>
           <TouchableOpacity
-            style={[styles.metricButton, metric === 'weight' ? styles.metricButtonActive : {}]}
+            style={[chart_styles.metricButton, metric === 'weight' ? chart_styles.metricButtonActive : {}]}
             onPress={() => setMetric('weight')}
           >
-            <Text style={[styles.metricButtonText, metric === 'weight' ? styles.metricButtonTextActive : {}]}>
+            <Text style={[chart_styles.metricButtonText, metric === 'weight' ? chart_styles.metricButtonTextActive : {}]}>
               Weight
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.metricButton, metric === 'volume' ? styles.metricButtonActive : {}]}
+            style={[chart_styles.metricButton, metric === 'volume' ? chart_styles.metricButtonActive : {}]}
             onPress={() => setMetric('volume')}
           >
-            <Text style={[styles.metricButtonText, metric === 'volume' ? styles.metricButtonTextActive : {}]}>
+            <Text style={[chart_styles.metricButtonText, metric === 'volume' ? chart_styles.metricButtonTextActive : {}]}>
               Volume
             </Text>
           </TouchableOpacity>
         </View>
         
-        <View style={styles.timeRangeSelector}>
+        <View style={chart_styles.timeRangeSelector}>
           {(['1w', '1m', '3m', '6m', '1y'] as TimeRange[]).map((range) => (
             <TouchableOpacity
               key={range}
-              style={[styles.timeButton, timeRange === range ? styles.timeButtonActive : {}]}
+              style={[chart_styles.timeButton, timeRange === range ? chart_styles.timeButtonActive : {}]}
               onPress={() => selectTimeRange(range)}
             >
-              <Text style={[styles.timeButtonText, timeRange === range ? styles.timeButtonTextActive : {}]}>
+              <Text style={[chart_styles.timeButtonText, timeRange === range ? chart_styles.timeButtonTextActive : {}]}>
                 {range}
               </Text>
             </TouchableOpacity>
@@ -412,15 +425,15 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
         </View>
         
         {isLoading ? (
-          <View style={styles.loadingContainer}>
+          <View style={chart_styles.loadingContainer}>
             <Text style={{ color: 'white' }}>Loading chart data...</Text>
           </View>
         ) : (
           <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+            <View style={{ width: '100%', alignItems: 'center' }}>
               <LineChart
                 data={chartData}
-                width={Math.max(Dimensions.get('window').width - 60, chartData.labels.length * 50)}
+                width={Dimensions.get('window').width - 50}
                 height={220}
                 chartConfig={{
                   backgroundColor: '#222',
@@ -437,17 +450,36 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
                     strokeWidth: '2',
                     stroke: '#e74c3c',
                   },
+                  propsForBackgroundLines: {
+                    strokeWidth: 1,
+                    strokeDasharray: '5, 5',
+                    stroke: 'rgba(255, 255, 255, 0.1)',
+                  },
+                  propsForLabels: {
+                    fontSize: 10,
+                    fontWeight: 'bold',
+                  },
+                  paddingLeft: 15,
+                  paddingRight: 0,
                 }}
                 bezier
-                style={styles.chart}
+                style={chart_styles.chart}
                 yAxisLabel={metric === 'weight' ? '' : ''}
                 yAxisSuffix={metric === 'weight' ? ' lbs' : ''}
+                withHorizontalLines={true}
+                withVerticalLines={true}
+                withInnerLines={true}
+                withOuterLines={true}
+                withVerticalLabels={true}
+                withHorizontalLabels={true}
+                fromZero={true}
+                segments={5}
               />
-            </ScrollView>
+            </View>
           </TouchableOpacity>
         )}
         
-        <Text style={styles.metricLabel}>
+        <Text style={chart_styles.metricLabel}>
           {metric === 'weight' ? 'Maximum Weight (lbs)' : 
            metric === 'volume' ? 'Total Volume (weight × reps)' :
            metric === 'duration' ? 'Duration (seconds)' :
@@ -462,13 +494,13 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
         animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Progress Chart: {exerciseName}</Text>
+        <View style={chart_styles.modalOverlay}>
+          <View style={chart_styles.modalContent}>
+            <Text style={chart_styles.modalTitle}>Progress Chart: {exerciseName}</Text>
             
             <LineChart
               data={chartData}
-              width={Dimensions.get('window').width - 40}
+              width={Dimensions.get('window').width - 60}
               height={300}
               chartConfig={{
                 backgroundColor: '#222',
@@ -485,14 +517,33 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
                   strokeWidth: '2',
                   stroke: '#e74c3c',
                 },
+                propsForBackgroundLines: {
+                  strokeWidth: 1,
+                  strokeDasharray: '5, 5',
+                  stroke: 'rgba(255, 255, 255, 0.1)',
+                },
+                propsForLabels: {
+                  fontSize: 10,
+                  fontWeight: 'bold',
+                },
+                paddingLeft: 15,
+                paddingRight: 0,
               }}
               bezier
-              style={styles.modalChart}
+              style={chart_styles.modalChart}
               yAxisLabel={metric === 'weight' ? '' : ''}
               yAxisSuffix={metric === 'weight' ? ' lbs' : ''}
+              withHorizontalLines={true}
+              withVerticalLines={true}
+              withInnerLines={true}
+              withOuterLines={true}
+              withVerticalLabels={true}
+              withHorizontalLabels={true}
+              fromZero={true}
+              segments={5}
             />
             
-            <Text style={styles.metricLabel}>
+            <Text style={chart_styles.metricLabel}>
               {metric === 'weight' ? 'Maximum Weight (lbs)' : 
               metric === 'volume' ? 'Total Volume (weight × reps)' :
               metric === 'duration' ? 'Duration (seconds)' :
@@ -502,8 +553,8 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
             <Button
               title="Close"
               onPress={() => setModalVisible(false)}
-              buttonStyle={styles.closeButton}
-              containerStyle={styles.closeButtonContainer}
+              buttonStyle={chart_styles.closeButton}
+              containerStyle={chart_styles.closeButtonContainer}
             />
           </View>
         </View>
@@ -511,148 +562,3 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#222',
-    borderRadius: 15,
-    padding: 20,
-    width: '90%',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  modalTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  modalChart: {
-    marginVertical: 10,
-    borderRadius: 16,
-  },
-  closeButton: {
-    backgroundColor: '#e74c3c',
-    paddingHorizontal: 30,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  closeButtonContainer: {
-    width: 150,
-  },
-  container: {
-    borderRadius: 10,
-    padding: 15,
-    marginVertical: 10,
-  },
-  darkCard: {
-    borderRadius: 10,
-    padding: 15,
-    marginVertical: 10,
-    backgroundColor: '#222',
-    borderColor: '#333',
-  },
-  cardTitle: {
-    color: 'white',
-  },
-  metricSelector: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 15,
-  },
-  metricButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    marginHorizontal: 5,
-    borderRadius: 20,
-    backgroundColor: '#333',
-  },
-  metricButtonActive: {
-    backgroundColor: '#e74c3c',
-  },
-  metricButtonText: {
-    color: '#ccc',
-    fontWeight: 'bold',
-  },
-  metricButtonTextActive: {
-    color: '#fff',
-  },
-  timeRangeSelector: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 15,
-  },
-  timeButton: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    marginHorizontal: 2,
-    borderRadius: 15,
-    backgroundColor: '#333',
-  },
-  timeButtonActive: {
-    backgroundColor: '#e74c3c',
-  },
-  timeButtonText: {
-    color: '#ccc',
-    fontSize: 12,
-  },
-  timeButtonTextActive: {
-    color: '#fff',
-  },
-  chart: {
-    marginVertical: 8,
-    borderRadius: 16,
-  },
-  metricLabel: {
-    textAlign: 'center',
-    color: '#ccc',
-    marginTop: 5,
-    fontSize: 12,
-  },
-  loadingContainer: {
-    height: 220,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  noDataText: {
-    textAlign: 'center',
-    color: '#ccc',
-    padding: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  noDataSubtext: {
-    textAlign: 'center',
-    color: '#aaa',
-    marginBottom: 20,
-    fontSize: 14,
-  },
-  miniContainer: {
-    width: 120,
-    height: 100,
-    padding: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  miniTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#ccc',
-    marginBottom: 5,
-  },
-  miniChart: {
-    borderRadius: 8,
-  },
-  miniText: {
-    fontSize: 10,
-    color: '#ccc',
-    textAlign: 'center',
-  },
-});

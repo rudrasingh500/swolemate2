@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, TextInput, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import { View, ScrollView, TextInput, TouchableOpacity, Modal } from 'react-native';
 import { Text, Button, Icon } from '@rneui/themed';
 import { 
   determineExerciseType, 
@@ -12,6 +12,7 @@ import {
   isCardioLogData
 } from '@/types/workout-log';
 import { supabase } from '@/lib/supabase/supabase';
+import log_styles from '@/styles/logging-modal _style';
 
 interface LoggingModalProps {
   isVisible: boolean;
@@ -302,31 +303,31 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text h4 style={styles.modalTitle}>Log Workout: {exerciseName}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+      <View style={log_styles.modalOverlay}>
+        <View style={log_styles.modalContent}>
+          <View style={log_styles.modalHeader}>
+            <Text h4 style={log_styles.modalTitle}>Log Workout: {exerciseName}</Text>
+            <TouchableOpacity onPress={onClose} style={log_styles.closeButton}>
               <Icon name="close" type="material" size={24} color="white" />
             </TouchableOpacity>
           </View>
           
-          <ScrollView style={styles.modalBody}>
+          <ScrollView style={log_styles.modalBody}>
             {/* Strength Exercise Form */}
             {exerciseType === 'strength' && (
-              <View style={styles.formSection}>
-                <Text style={styles.sectionTitle}>Strength Training</Text>
+              <View style={log_styles.formSection}>
+                <Text style={log_styles.sectionTitle}>Strength Training</Text>
                 
                 {strengthSets.map((set, index) => (
-                  <View key={index} style={styles.setRow}>
-                    <View style={styles.setNumberContainer}>
-                      <Text style={styles.setNumber}>Set {set.set_number}</Text>
+                  <View key={index} style={log_styles.setRow}>
+                    <View style={log_styles.setNumberContainer}>
+                      <Text style={log_styles.setNumber}>Set {set.set_number}</Text>
                     </View>
                     
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>Weight</Text>
+                    <View style={log_styles.inputGroup}>
+                      <Text style={log_styles.inputLabel}>Weight</Text>
                       <TextInput
-                        style={styles.input}
+                        style={log_styles.input}
                         value={set.weight.toString()}
                         onChangeText={(value) => updateStrengthSet(index, 'weight', value)}
                         keyboardType="numeric"
@@ -335,10 +336,10 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
                       />
                     </View>
                     
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.inputLabel}>Reps</Text>
+                    <View style={log_styles.inputGroup}>
+                      <Text style={log_styles.inputLabel}>Reps</Text>
                       <TextInput
-                        style={styles.input}
+                        style={log_styles.input}
                         value={set.reps.toString()}
                         onChangeText={(value) => updateStrengthSet(index, 'reps', value)}
                         keyboardType="numeric"
@@ -349,7 +350,7 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
                     
                     <TouchableOpacity 
                       onPress={() => removeStrengthSet(index)}
-                      style={styles.removeButton}
+                      style={log_styles.removeButton}
                       disabled={strengthSets.length <= 1}
                     >
                       <Icon 
@@ -366,8 +367,8 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
                   title="Add Set"
                   type="outline"
                   icon={<Icon name="add-circle-outline" type="material" size={20} color="#e74c3c" />}
-                  buttonStyle={styles.addButton}
-                  titleStyle={styles.addButtonText}
+                  buttonStyle={log_styles.addButton}
+                  titleStyle={log_styles.addButtonText}
                   onPress={addStrengthSet}
                 />
               </View>
@@ -375,20 +376,20 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
             
             {/* Duration Exercise Form */}
             {exerciseType === 'duration' && (
-              <View style={styles.formSection}>
-                <Text style={styles.sectionTitle}>Duration Exercise</Text>
+              <View style={log_styles.formSection}>
+                <Text style={log_styles.sectionTitle}>Duration Exercise</Text>
                 
                 {durationSets.map((set, index) => (
-                  <View key={index} style={styles.setRow}>
-                    <View style={styles.setNumberContainer}>
-                      <Text style={styles.setNumber}>Set {set.set_number}</Text>
+                  <View key={index} style={log_styles.setRow}>
+                    <View style={log_styles.setNumberContainer}>
+                      <Text style={log_styles.setNumber}>Set {set.set_number}</Text>
                     </View>
                     
-                    <View style={styles.timeInputContainer}>
-                      <View style={styles.timeInputGroup}>
-                        <Text style={styles.inputLabel}>Minutes</Text>
+                    <View style={log_styles.timeInputContainer}>
+                      <View style={log_styles.timeInputGroup}>
+                        <Text style={log_styles.inputLabel}>Minutes</Text>
                         <TextInput
-                          style={styles.timeInput}
+                          style={log_styles.timeInput}
                           value={minutesInputs[index]?.toString() || '0'}
                           onChangeText={(value) => updateMinutes(index, value)}
                           keyboardType="numeric"
@@ -397,12 +398,12 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
                         />
                       </View>
                       
-                      <Text style={styles.timeSeparator}>:</Text>
+                      <Text style={log_styles.timeSeparator}>:</Text>
                       
-                      <View style={styles.timeInputGroup}>
-                        <Text style={styles.inputLabel}>Seconds</Text>
+                      <View style={log_styles.timeInputGroup}>
+                        <Text style={log_styles.inputLabel}>Seconds</Text>
                         <TextInput
-                          style={styles.timeInput}
+                          style={log_styles.timeInput}
                           value={secondsInputs[index]?.toString() || '0'}
                           onChangeText={(value) => updateSeconds(index, value)}
                           keyboardType="numeric"
@@ -414,7 +415,7 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
                     
                     <TouchableOpacity 
                       onPress={() => removeDurationSet(index)}
-                      style={styles.removeButton}
+                      style={log_styles.removeButton}
                       disabled={durationSets.length <= 1}
                     >
                       <Icon 
@@ -431,8 +432,8 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
                   title="Add Set"
                   type="outline"
                   icon={<Icon name="add-circle-outline" type="material" size={20} color="#e74c3c" />}
-                  buttonStyle={styles.addButton}
-                  titleStyle={styles.addButtonText}
+                  buttonStyle={log_styles.addButton}
+                  titleStyle={log_styles.addButtonText}
                   onPress={addDurationSet}
                 />
               </View>
@@ -440,15 +441,15 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
             
             {/* Cardio Exercise Form */}
             {exerciseType === 'cardio' && (
-              <View style={styles.formSection}>
-                <Text style={styles.sectionTitle}>Cardio Exercise</Text>
+              <View style={log_styles.formSection}>
+                <Text style={log_styles.sectionTitle}>Cardio Exercise</Text>
                 
-                <View style={styles.cardioRow}>
-                  <View style={styles.cardioInputGroup}>
-                    <Text style={styles.inputLabel}>Distance</Text>
-                    <View style={styles.cardioInputContainer}>
+                <View style={log_styles.cardioRow}>
+                  <View style={log_styles.cardioInputGroup}>
+                    <Text style={log_styles.inputLabel}>Distance</Text>
+                    <View style={log_styles.cardioInputContainer}>
                       <TextInput
-                        style={styles.cardioInput}
+                        style={log_styles.cardioInput}
                         value={distance !== undefined ? distance.toString() : ''}
                         onChangeText={(value) => setDistance(value ? Number(value) : undefined)}
                         keyboardType="numeric"
@@ -456,21 +457,21 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
                         placeholderTextColor={getPlaceholderTextColor()}
                       />
                       <TouchableOpacity 
-                        style={styles.unitToggle}
+                        style={log_styles.unitToggle}
                         onPress={toggleDistanceUnit}
                       >
-                        <Text style={styles.unitText}>{distanceUnit}</Text>
+                        <Text style={log_styles.unitText}>{distanceUnit}</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
                 </View>
                 
-                <View style={styles.cardioRow}>
-                  <View style={styles.cardioInputGroup}>
-                    <Text style={styles.inputLabel}>Duration</Text>
-                    <View style={styles.cardioInputContainer}>
+                <View style={log_styles.cardioRow}>
+                  <View style={log_styles.cardioInputGroup}>
+                    <Text style={log_styles.inputLabel}>Duration</Text>
+                    <View style={log_styles.cardioInputContainer}>
                       <TextInput
-                        style={styles.cardioInput}
+                        style={log_styles.cardioInput}
                         value={duration !== undefined ? duration.toString() : ''}
                         onChangeText={(value) => setDuration(value ? Number(value) : undefined)}
                         keyboardType="numeric"
@@ -478,20 +479,20 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
                         placeholderTextColor={getPlaceholderTextColor()}
                       />
                       <TouchableOpacity 
-                        style={styles.unitToggle}
+                        style={log_styles.unitToggle}
                         onPress={toggleCardioTimeUnit}
                       >
-                        <Text style={styles.unitText}>{durationUnit}</Text>
+                        <Text style={log_styles.unitText}>{durationUnit}</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
                 </View>
                 
-                <View style={styles.cardioRow}>
-                  <View style={styles.cardioInputGroup}>
-                    <Text style={styles.inputLabel}>Pace (min/km or min/mile)</Text>
+                <View style={log_styles.cardioRow}>
+                  <View style={log_styles.cardioInputGroup}>
+                    <Text style={log_styles.inputLabel}>Pace (min/km or min/mile)</Text>
                     <TextInput
-                      style={styles.fullWidthInput}
+                      style={log_styles.fullWidthInput}
                       value={pace}
                       onChangeText={setPace}
                       placeholder="e.g. 5:30"
@@ -500,11 +501,11 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
                   </View>
                 </View>
                 
-                <View style={styles.cardioRow}>
-                  <View style={styles.cardioInputGroup}>
-                    <Text style={styles.inputLabel}>Calories Burned</Text>
+                <View style={log_styles.cardioRow}>
+                  <View style={log_styles.cardioInputGroup}>
+                    <Text style={log_styles.inputLabel}>Calories Burned</Text>
                     <TextInput
-                      style={styles.fullWidthInput}
+                      style={log_styles.fullWidthInput}
                       value={caloriesBurned !== undefined ? caloriesBurned.toString() : ''}
                       onChangeText={(value) => setCaloriesBurned(value ? Number(value) : undefined)}
                       keyboardType="numeric"
@@ -514,11 +515,11 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
                   </View>
                 </View>
                 
-                <View style={styles.cardioRow}>
-                  <View style={styles.cardioInputGroup}>
-                    <Text style={styles.inputLabel}>Avg. Heart Rate (bpm)</Text>
+                <View style={log_styles.cardioRow}>
+                  <View style={log_styles.cardioInputGroup}>
+                    <Text style={log_styles.inputLabel}>Avg. Heart Rate (bpm)</Text>
                     <TextInput
-                      style={styles.fullWidthInput}
+                      style={log_styles.fullWidthInput}
                       value={heartRate !== undefined ? heartRate.toString() : ''}
                       onChangeText={(value) => setHeartRate(value ? Number(value) : undefined)}
                       keyboardType="numeric"
@@ -531,10 +532,10 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
             )}
             
             {/* Notes Section (common for all exercise types) */}
-            <View style={styles.formSection}>
-              <Text style={styles.sectionTitle}>Notes</Text>
+            <View style={log_styles.formSection}>
+              <Text style={log_styles.sectionTitle}>Notes</Text>
               <TextInput
-                style={styles.notesInput}
+                style={log_styles.notesInput}
                 value={notes}
                 onChangeText={setNotes}
                 placeholder="Add notes about your workout..."
@@ -545,27 +546,27 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
             </View>
           </ScrollView>
           
-          <View style={styles.modalFooter}>
+          <View style={log_styles.modalFooter}>
             <Button
               title="Cancel"
               type="outline"
-              buttonStyle={styles.cancelButton}
-              titleStyle={styles.cancelButtonText}
+              buttonStyle={log_styles.cancelButton}
+              titleStyle={log_styles.cancelButtonText}
               onPress={onClose}
             />
-            <View style={styles.actionButtons}>
+            <View style={log_styles.actionButtons}>
               <Button
                 title="Save"
                 type="outline"
-                buttonStyle={styles.saveProgressButton}
-                titleStyle={styles.saveProgressButtonText}
+                buttonStyle={log_styles.saveProgressButton}
+                titleStyle={log_styles.saveProgressButtonText}
                 loading={isSaving}
                 onPress={() => handleSubmit(false)}
                 containerStyle={{ marginRight: 10 }}
               />
               <Button
                 title="Complete"
-                buttonStyle={styles.completeButton}
+                buttonStyle={log_styles.completeButton}
                 loading={isSubmitting}
                 onPress={() => handleSubmit(true)}
               />
@@ -576,203 +577,3 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '90%',
-    maxHeight: '80%',
-    backgroundColor: '#1a1a1a',
-    borderRadius: 10,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-    backgroundColor: '#222',
-  },
-  modalTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  closeButton: {
-    padding: 5,
-  },
-  modalBody: {
-    padding: 15,
-    maxHeight: '70%',
-    backgroundColor: '#1a1a1a',
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-    backgroundColor: '#222',
-  },
-  formSection: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: 'white',
-  },
-  setRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  setNumberContainer: {
-    width: 60,
-    marginRight: 10,
-  },
-  setNumber: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  inputGroup: {
-    flex: 1,
-    marginRight: 10,
-  },
-  timeInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  timeInputGroup: {
-    flex: 1,
-  },
-  timeInput: {
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 5,
-    padding: 8,
-    fontSize: 14,
-    backgroundColor: '#2a2a2a',
-    color: 'white',
-    textAlign: 'center',
-  },
-  timeSeparator: {
-    color: 'white',
-    fontSize: 20,
-    marginHorizontal: 5,
-    fontWeight: 'bold',
-  },
-  inputLabel: {
-    fontSize: 12,
-    color: '#ccc',
-    marginBottom: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 5,
-    padding: 8,
-    fontSize: 14,
-    backgroundColor: '#2a2a2a',
-    color: 'white',
-  },
-  removeButton: {
-    padding: 5,
-  },
-  addButton: {
-    borderColor: '#e74c3c',
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  addButtonText: {
-    color: '#e74c3c',
-  },
-  unitToggle: {
-    backgroundColor: '#333',
-    padding: 8,
-    borderRadius: 5,
-    marginLeft: 5,
-    minWidth: 40,
-    alignItems: 'center',
-  },
-  unitText: {
-    color: 'white',
-    fontSize: 14,
-  },
-  cardioRow: {
-    marginBottom: 15,
-  },
-  cardioInputGroup: {
-    width: '100%',
-  },
-  cardioInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  cardioInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 5,
-    padding: 8,
-    fontSize: 14,
-    backgroundColor: '#2a2a2a',
-    color: 'white',
-  },
-  fullWidthInput: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 5,
-    padding: 8,
-    fontSize: 14,
-    backgroundColor: '#2a2a2a',
-    color: 'white',
-  },
-  notesInput: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 5,
-    padding: 10,
-    fontSize: 14,
-    textAlignVertical: 'top',
-    minHeight: 100,
-    backgroundColor: '#2a2a2a',
-    color: 'white',
-  },
-  cancelButton: {
-    borderColor: '#999',
-    borderRadius: 5,
-  },
-  cancelButtonText: {
-    color: '#999',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-  },
-  saveProgressButton: {
-    borderColor: '#e74c3c',
-    borderRadius: 5,
-  },
-  saveProgressButtonText: {
-    color: '#e74c3c',
-  },
-  completeButton: {
-    backgroundColor: '#e74c3c',
-    borderRadius: 5,
-  },
-});
