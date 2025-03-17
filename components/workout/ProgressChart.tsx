@@ -365,8 +365,9 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
                   fontSize: 10,
                   fontWeight: 'bold',
                 },
-                paddingLeft: 15,
-                paddingRight: 0,
+                paddingLeft: 60,
+                paddingRight: 10,
+                formatYLabel: (value) => Math.round(Number(value)).toString(),
               }}
               bezier
               style={chart_styles.miniChart}
@@ -459,8 +460,12 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
                     fontSize: 10,
                     fontWeight: 'bold',
                   },
-                  paddingLeft: 15,
-                  paddingRight: 0,
+                  paddingLeft: 80,
+                  paddingRight: 20,
+                  formatYLabel: (value) => Math.round(Number(value)).toString(),
+                  formatXLabel: (value) => value,
+                  horizontalLabelRotation: 0,
+                  verticalLabelRotation: 0,
                 }}
                 bezier
                 style={chart_styles.chart}
@@ -526,8 +531,12 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
                   fontSize: 10,
                   fontWeight: 'bold',
                 },
-                paddingLeft: 15,
-                paddingRight: 0,
+                paddingLeft: 80,
+                paddingRight: 20,
+                formatYLabel: (value) => Math.round(Number(value)).toString(),
+                formatXLabel: (value) => value,
+                horizontalLabelRotation: 0,
+                verticalLabelRotation: 0,
               }}
               bezier
               style={chart_styles.modalChart}
