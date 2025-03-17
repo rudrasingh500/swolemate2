@@ -13,7 +13,7 @@ import StreakDisplay from '@/components/home/StreakDisplay';
 import EmptyStateView from '@/components/home/EmptyStateView';
 import HealthWidgets from '@/components/home/HealthWidgets';
 import LoggingModal from '@/components/workout/LoggingModal';
-import WorkoutHistory from '@/components/workout/WorkoutHistory';
+import WorkoutHistory from '@/components/global/WorkoutHistory';
 
 export default function TabsMainScreen() {
   const navigation = useNavigation();
@@ -467,7 +467,7 @@ export default function TabsMainScreen() {
               {workoutPlan && (
                 <WorkoutHistory 
                   profileId={workoutPlan.profile_id} 
-                  onViewAllHistory={() => {}} 
+                  onViewAllHistory={() => router.push('/workout-plan')} 
                   refreshTrigger={historyRefreshTrigger}
                 />
               )}

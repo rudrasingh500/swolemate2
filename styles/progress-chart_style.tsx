@@ -1,46 +1,6 @@
 import { StyleSheet, Dimensions } from "react-native";
 
 const chart_styles = StyleSheet.create({
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    modalContent: {
-      backgroundColor: '#222',
-      borderRadius: 15,
-      padding: 20,
-      width: '90%',
-      maxWidth: Dimensions.get('window').width - 40,
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: '#333',
-    },
-    modalTitle: {
-      color: 'white',
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 20,
-    },
-    modalChart: {
-      marginVertical: 10,
-      borderRadius: 16,
-      width: '98%',
-      paddingRight: 20,
-      paddingLeft: 15,
-      marginLeft: 5,
-      overflow: 'hidden',
-    },
-    closeButton: {
-      backgroundColor: '#e74c3c',
-      paddingHorizontal: 30,
-      borderRadius: 8,
-      marginTop: 20,
-    },
-    closeButtonContainer: {
-      width: 150,
-    },
     container: {
       borderRadius: 10,
       padding: 15,
@@ -110,13 +70,6 @@ const chart_styles = StyleSheet.create({
       width: '100%',
       marginHorizontal: 0,
     },
-    modalChart: {
-      marginVertical: 10,
-      borderRadius: 16,
-      width: '100%',
-      overflow: 'hidden',
-      marginHorizontal: 0,
-    },
     miniChart: {
       borderRadius: 8,
       alignSelf: 'flex-start',
@@ -160,11 +113,6 @@ const chart_styles = StyleSheet.create({
       fontWeight: 'bold',
       color: '#ccc',
       marginBottom: 5,
-    },
-    miniChart: {
-      borderRadius: 8,
-      alignSelf: 'flex-start',
-      overflow: 'hidden',
     },
     miniText: {
       fontSize: 10,

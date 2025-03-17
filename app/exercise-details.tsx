@@ -12,7 +12,7 @@ import ExerciseBenefits from '@/components/exercise/ExerciseBenefits';
 import ExerciseGif from '@/components/exercise/ExerciseGif';
 import ExerciseEquipment from '@/components/exercise/ExerciseEquipment';
 import ProgressChart from '@/components/workout/ProgressChart';
-import ExerciseWorkoutHistory from '@/components/exercise/ExerciseWorkoutHistory';
+import WorkoutHistory from '@/components/global/WorkoutHistory';
 import { fetchExercises } from '@/lib/api/exercise';
 
 interface ApiExercise {
@@ -49,7 +49,26 @@ export default function ExerciseDetailsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
+  // Listen for workout log updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('workout_logs_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'workout_logs'
+      }, () => {
+        // Increment the refresh trigger to reload workout history
+        setHistoryRefreshTrigger(prev => prev + 1);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
   useEffect(() => {
     // Get the current user
     async function getCurrentUser() {
@@ -185,9 +204,10 @@ export default function ExerciseDetailsScreen() {
                   profileId={userId} 
                   exerciseName={exercise.name} 
                 />
-                <ExerciseWorkoutHistory
+                <WorkoutHistory
                   profileId={userId}
                   exerciseName={exercise.name}
+                  refreshTrigger={historyRefreshTrigger}
                 />
               </View>
             )}

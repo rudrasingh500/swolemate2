@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Dimensions, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { View, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
 import { Text, Card, Button } from '@rneui/themed';
-import { LineChart } from 'react-native-chart-kit';
 import { supabase } from '@/lib/supabase/supabase';
 import { format, subDays, subMonths, parseISO } from 'date-fns';
 import chart_styles from '@/styles/progress-chart_style';
+import ChartRenderer from './ChartRenderer';
 
 interface ProgressChartProps {
   profileId: string;
@@ -24,7 +24,6 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState(Date.now());
-  const [modalVisible, setModalVisible] = useState(false);
 
   // Force refresh every 5 seconds when mini chart is displayed
   useEffect(() => {
@@ -75,8 +74,7 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
       }
 
       // Fetch exercise logs for the selected period
-      console.log('Fetching progress data for:', exerciseName);
-      console.log('Date range:', startDate.toISOString(), 'to', endDate.toISOString());
+      // Fetch exercise logs for the selected period
       
       // First, check if there are any logs for this exercise
       const { data: logsCheck, error: logsCheckError } = await supabase
@@ -91,7 +89,7 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
         throw logsCheckError;
       }
       
-      console.log('Logs check result:', logsCheck?.length > 0 ? 'Logs found' : 'No logs found');
+      // Check if logs exist for this exercise
       
       // If no logs found, don't bother with the RPC call
       if (!logsCheck || logsCheck.length === 0) {
@@ -117,7 +115,7 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
         throw logsError;
       }
       
-      console.log('Fetched logs:', logs?.length || 0);
+      // Process the fetched logs
       
       // Process data for chart
       processChartData(logs || []);
@@ -134,8 +132,7 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
   };
 
   const processChartData = (logs: any[]) => {
-    console.log('Processing chart data, logs count:', logs.length);
-    console.log('Log sample:', logs.length > 0 ? JSON.stringify(logs[0]) : 'No logs');
+    // Process chart data from logs
     
     if (logs.length === 0) {
       // If no data, provide a default dataset for mini charts to avoid empty display
@@ -161,9 +158,7 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
     const durationLogs = logs.filter(log => log.exercise_type === 'duration');
     const cardioLogs = logs.filter(log => log.exercise_type === 'cardio');
     
-    console.log('Strength logs:', strengthLogs.length);
-    console.log('Duration logs:', durationLogs.length);
-    console.log('Cardio logs:', cardioLogs.length);
+    // Process different types of logs
 
     if (strengthLogs.length > 0) {
       // Process strength logs
@@ -241,13 +236,11 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
     const labels = processedData.map(item => format(item.date, mini ? 'MM/dd' : 'MM/dd/yy'));
     const values = processedData.map(item => item.value);
     
-    console.log('Processed data points:', processedData.length);
-    console.log('Chart labels:', labels);
-    console.log('Chart values:', values);
+    // Format data for chart display
 
     // Ensure we have at least one data point
     if (values.length === 0) {
-      console.log('No values after processing, using default data');
+      // Use default data if no values are available
       setChartData({
         labels: ['No Data'],
         datasets: [{ data: [0] }]
@@ -292,35 +285,11 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
         <Text style={chart_styles.noDataText}>No progress data available yet.</Text>
         <Text style={chart_styles.noDataSubtext}>Complete a workout to see your progress!</Text>
         
-        <LineChart
-          data={dummyData}
+        <ChartRenderer
+          chartData={dummyData}
+          metric={metric}
           width={Dimensions.get('window').width - 40}
           height={220}
-          chartConfig={{
-            backgroundColor: '#222',
-            backgroundGradientFrom: '#222',
-            backgroundGradientTo: '#222',
-            decimalPlaces: 0,
-            color: (opacity = 0.2) => `rgba(231, 76, 60, ${opacity})`,
-            labelColor: (opacity = 0.5) => `rgba(255, 255, 255, ${opacity})`,
-            style: {
-              borderRadius: 16,
-            },
-            propsForDots: {
-              r: '0',
-              strokeWidth: '0',
-            },
-          }}
-          bezier
-          style={chart_styles.chart}
-          withDots={false}
-          withShadow={false}
-          withInnerLines={false}
-          withOuterLines={false}
-          withVerticalLines={false}
-          withHorizontalLines={false}
-          withVerticalLabels={false}
-          withHorizontalLabels={false}
         />
       </Card>
     );
@@ -337,48 +306,12 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
         ) : (
           <>
             <Text style={chart_styles.miniTitle}>Progress</Text>
-            <LineChart
-              data={chartData}
+            <ChartRenderer
+              chartData={chartData}
+              metric={metric}
               width={Dimensions.get('window').width - 60}
               height={70}
-              chartConfig={{
-                backgroundColor: '#222',
-                backgroundGradientFrom: '#222',
-                backgroundGradientTo: '#222',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(231, 76, 60, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                style: {
-                  borderRadius: 16,
-                },
-                propsForDots: {
-                  r: '3',
-                  strokeWidth: '1',
-                  stroke: '#e74c3c',
-                },
-                propsForBackgroundLines: {
-                  strokeWidth: 1,
-                  strokeDasharray: '3, 3',
-                  stroke: 'rgba(255, 255, 255, 0.05)',
-                },
-                propsForLabels: {
-                  fontSize: 10,
-                  fontWeight: 'bold',
-                },
-                paddingLeft: 60,
-                paddingRight: 10,
-                formatYLabel: (value) => Math.round(Number(value)).toString(),
-              }}
-              bezier
-              style={chart_styles.miniChart}
-              withDots={chartData.datasets[0].data.length > 1}
-              withInnerLines={false}
-              withOuterLines={true}
-              withVerticalLines={false}
-              withHorizontalLines={true}
-              withVerticalLabels={false}
-              withHorizontalLabels={false}
-              fromZero={true}
+              isMini={true}
             />
           </>
         )}
@@ -430,58 +363,14 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
             <Text style={{ color: 'white' }}>Loading chart data...</Text>
           </View>
         ) : (
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <View style={{ width: '100%', alignItems: 'center' }}>
-              <LineChart
-                data={chartData}
-                width={Dimensions.get('window').width - 50}
-                height={220}
-                chartConfig={{
-                  backgroundColor: '#222',
-                  backgroundGradientFrom: '#222',
-                  backgroundGradientTo: '#222',
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(231, 76, 60, ${opacity})`,
-                  labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                  style: {
-                    borderRadius: 16,
-                  },
-                  propsForDots: {
-                    r: '5',
-                    strokeWidth: '2',
-                    stroke: '#e74c3c',
-                  },
-                  propsForBackgroundLines: {
-                    strokeWidth: 1,
-                    strokeDasharray: '5, 5',
-                    stroke: 'rgba(255, 255, 255, 0.1)',
-                  },
-                  propsForLabels: {
-                    fontSize: 10,
-                    fontWeight: 'bold',
-                  },
-                  paddingLeft: 80,
-                  paddingRight: 20,
-                  formatYLabel: (value) => Math.round(Number(value)).toString(),
-                  formatXLabel: (value) => value,
-                  horizontalLabelRotation: 0,
-                  verticalLabelRotation: 0,
-                }}
-                bezier
-                style={chart_styles.chart}
-                yAxisLabel={metric === 'weight' ? '' : ''}
-                yAxisSuffix={metric === 'weight' ? ' lbs' : ''}
-                withHorizontalLines={true}
-                withVerticalLines={true}
-                withInnerLines={true}
-                withOuterLines={true}
-                withVerticalLabels={true}
-                withHorizontalLabels={true}
-                fromZero={true}
-                segments={5}
-              />
-            </View>
-          </TouchableOpacity>
+          <View style={{ width: '100%', alignItems: 'center' }}>
+            <ChartRenderer
+              chartData={chartData}
+              metric={metric}
+              width={Dimensions.get('window').width - 50}
+              height={220}
+            />
+          </View>
         )}
         
         <Text style={chart_styles.metricLabel}>
@@ -491,83 +380,6 @@ export default function ProgressChart({ profileId, exerciseName, mini = false }:
            metric === 'distance' ? 'Distance (km)' : ''}
         </Text>
       </Card>
-      
-      {/* Full-screen chart modal */}
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={chart_styles.modalOverlay}>
-          <View style={chart_styles.modalContent}>
-            <Text style={chart_styles.modalTitle}>Progress Chart: {exerciseName}</Text>
-            
-            <LineChart
-              data={chartData}
-              width={Dimensions.get('window').width - 60}
-              height={300}
-              chartConfig={{
-                backgroundColor: '#222',
-                backgroundGradientFrom: '#222',
-                backgroundGradientTo: '#222',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(231, 76, 60, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                style: {
-                  borderRadius: 16,
-                },
-                propsForDots: {
-                  r: '6',
-                  strokeWidth: '2',
-                  stroke: '#e74c3c',
-                },
-                propsForBackgroundLines: {
-                  strokeWidth: 1,
-                  strokeDasharray: '5, 5',
-                  stroke: 'rgba(255, 255, 255, 0.1)',
-                },
-                propsForLabels: {
-                  fontSize: 10,
-                  fontWeight: 'bold',
-                },
-                paddingLeft: 80,
-                paddingRight: 20,
-                formatYLabel: (value) => Math.round(Number(value)).toString(),
-                formatXLabel: (value) => value,
-                horizontalLabelRotation: 0,
-                verticalLabelRotation: 0,
-              }}
-              bezier
-              style={chart_styles.modalChart}
-              yAxisLabel={metric === 'weight' ? '' : ''}
-              yAxisSuffix={metric === 'weight' ? ' lbs' : ''}
-              withHorizontalLines={true}
-              withVerticalLines={true}
-              withInnerLines={true}
-              withOuterLines={true}
-              withVerticalLabels={true}
-              withHorizontalLabels={true}
-              fromZero={true}
-              segments={5}
-            />
-            
-            <Text style={chart_styles.metricLabel}>
-              {metric === 'weight' ? 'Maximum Weight (lbs)' : 
-              metric === 'volume' ? 'Total Volume (weight × reps)' :
-              metric === 'duration' ? 'Duration (seconds)' :
-              metric === 'distance' ? 'Distance (km)' : ''}
-            </Text>
-            
-            <Button
-              title="Close"
-              onPress={() => setModalVisible(false)}
-              buttonStyle={chart_styles.closeButton}
-              containerStyle={chart_styles.closeButtonContainer}
-            />
-          </View>
-        </View>
-      </Modal>
     </>
   );
 }

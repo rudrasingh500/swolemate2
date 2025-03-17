@@ -16,9 +16,29 @@ export default function WorkoutPlanScreen() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PreDefinedPlan | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
   useEffect(() => {
     fetchWorkoutPlan();
+
+    // Listen for workout log updates
+    const channel = supabase
+      .channel('workout_logs_changes_plan_screen')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'workout_logs'
+      }, () => {
+        // Increment the refresh trigger to reload workout history
+        setHistoryRefreshTrigger(prev => prev + 1);
+        // Also refresh the workout plan data
+        fetchWorkoutPlan();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchWorkoutPlan = async () => {

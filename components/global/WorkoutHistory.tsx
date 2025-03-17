@@ -1,54 +1,88 @@
+
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Card, Divider } from '@rneui/themed';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
+import { Text, Card, Icon } from '@rneui/themed';
 import { supabase } from '@/lib/supabase/supabase';
 import { WorkoutLog } from '@/types/workout-log';
-import { format, parseISO, isToday, isYesterday } from 'date-fns';
+import { format, parseISO, isToday, isYesterday, subDays } from 'date-fns';
+import styles from '@/styles/workout-history_style';
 
-interface ExerciseWorkoutHistoryProps {
+interface WorkoutHistoryProps {
   profileId: string;
-  exerciseName: string;
+  exerciseName?: string;
+  onViewAllHistory?: () => void;
+  refreshTrigger?: number;
 }
 
-export default function ExerciseWorkoutHistory({ profileId, exerciseName }: ExerciseWorkoutHistoryProps) {
+export default function WorkoutHistory({ 
+  profileId, 
+  exerciseName, 
+  onViewAllHistory, 
+  refreshTrigger = 0 
+}: WorkoutHistoryProps) {
   const [logs, setLogs] = useState<WorkoutLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Determine if we're showing history for a specific exercise
+  const isExerciseSpecific = !!exerciseName;
 
   useEffect(() => {
     fetchWorkoutLogs();
-  }, [profileId, exerciseName]);
+  }, [profileId, exerciseName, refreshTrigger]);
 
   const fetchWorkoutLogs = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Get logs for this specific exercise from the past 30 days
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
+      // Calculate date range
+      let startDate;
+      const endDate = new Date().toISOString();
+      
+      if (isExerciseSpecific) {
+        // For specific exercise, get logs from the past 30 days
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        startDate = startDate.toISOString();
+      } else {
+        // For general history, get logs from the past 7 days
+        startDate = subDays(new Date(), 7).toISOString();
+      }
       
       const { data, error } = await supabase.rpc('get_workout_logs_by_period', {
         user_id: profileId,
-        start_date: startDate.toISOString(),
-        end_date: new Date().toISOString()
+        start_date: startDate,
+        end_date: endDate
       });
 
       if (error) throw error;
 
-      // Filter logs for this specific exercise
-      const exerciseLogs = (data || []).filter(log => 
-        log.exercise_name.toLowerCase() === exerciseName.toLowerCase()
-      );
+      // Filter logs for specific exercise if needed
+      const filteredLogs = isExerciseSpecific
+        ? (data || []).filter(log => 
+            log.exercise_name.toLowerCase() === exerciseName.toLowerCase()
+          )
+        : (data || []);
 
-      setLogs(exerciseLogs);
+      setLogs(filteredLogs);
     } catch (err) {
-      console.error('Error fetching exercise logs:', err);
+      console.error('Error fetching workout logs:', err);
       setError('Failed to load workout history');
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Group logs by date
+  const groupedLogs = logs.reduce((groups, log) => {
+    const date = format(parseISO(log.logged_at), 'yyyy-MM-dd');
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(log);
+    return groups;
+  }, {} as Record<string, WorkoutLog[]>);
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -128,8 +162,8 @@ export default function ExerciseWorkoutHistory({ profileId, exerciseName }: Exer
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Workout History</Text>
+      <View style={isExerciseSpecific ? styles.container : styles.loadingContainer}>
+        {isExerciseSpecific && <Text style={styles.title}>Workout History</Text>}
         <Text style={styles.loadingText}>Loading workout history...</Text>
       </View>
     );
@@ -137,38 +171,47 @@ export default function ExerciseWorkoutHistory({ profileId, exerciseName }: Exer
 
   if (error) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Workout History</Text>
+      <View style={isExerciseSpecific ? styles.container : styles.errorContainer}>
+        {isExerciseSpecific && <Text style={styles.title}>Workout History</Text>}
         <Text style={styles.errorText}>{error}</Text>
       </View>
     );
   }
 
   if (logs.length === 0) {
+    const emptyMessage = isExerciseSpecific
+      ? 'No workout logs found for this exercise.'
+      : 'No workout logs found for the past week.';
+      
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Workout History</Text>
-        <Text style={styles.emptyText}>No workout logs found for this exercise.</Text>
+      <View style={isExerciseSpecific ? styles.container : styles.emptyContainer}>
+        {isExerciseSpecific && <Text style={styles.title}>Workout History</Text>}
+        <Text style={styles.emptyText}>{emptyMessage}</Text>
         <Text style={styles.emptySubtext}>Complete a workout to see your history here!</Text>
       </View>
     );
   }
 
-  // Group logs by date
-  const groupedLogs = logs.reduce((groups, log) => {
-    const date = format(parseISO(log.logged_at), 'yyyy-MM-dd');
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(log);
-    return groups;
-  }, {} as Record<string, WorkoutLog[]>);
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Workout History</Text>
+    <View style={isExerciseSpecific ? styles.container : styles.generalContainer}>
+      {isExerciseSpecific ? (
+        <Text style={styles.title}>Workout History</Text>
+      ) : (
+        <View style={styles.header}>
+          <Text style={styles.generalTitle}>Recent Workout History</Text>
+          {onViewAllHistory && (
+            <TouchableOpacity onPress={onViewAllHistory} style={styles.viewAllButton}>
+              <Text style={styles.viewAllText}>View All</Text>
+              <Icon name="chevron-right" type="material" size={16} color="#e74c3c" />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
       
-      <ScrollView style={styles.scrollContainer} nestedScrollEnabled={true}>
+      <ScrollView 
+        style={isExerciseSpecific ? styles.scrollContainer : styles.generalScrollContainer} 
+        nestedScrollEnabled={isExerciseSpecific}
+      >
         {Object.keys(groupedLogs)
           .sort((a, b) => new Date(b).getTime() - new Date(a).getTime()) // Sort dates in descending order
           .map((date) => (
@@ -178,6 +221,9 @@ export default function ExerciseWorkoutHistory({ profileId, exerciseName }: Exer
               {groupedLogs[date].map((log) => (
                 <Card key={log.id} containerStyle={styles.logCard}>
                   <View style={styles.logHeader}>
+                    {!isExerciseSpecific && (
+                      <Text style={styles.exerciseName}>{log.exercise_name}</Text>
+                    )}
                     <Text style={styles.logTime}>
                       {format(parseISO(log.logged_at), 'h:mm a')}
                     </Text>
@@ -205,132 +251,3 @@ export default function ExerciseWorkoutHistory({ profileId, exerciseName }: Exer
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 20,
-    padding: 15,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 10,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 15,
-  },
-  scrollContainer: {
-    maxHeight: 400,
-  },
-  dateGroup: {
-    marginBottom: 15,
-  },
-  dateHeader: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#ccc',
-  },
-  logCard: {
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#333',
-    backgroundColor: '#222',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  logHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  logTime: {
-    fontSize: 12,
-    color: '#aaa',
-  },
-  exerciseTypeContainer: {
-    marginBottom: 10,
-  },
-  exerciseType: {
-    fontSize: 14,
-    color: '#ccc',
-    fontStyle: 'italic',
-  },
-  logDetails: {
-    marginVertical: 5,
-  },
-  setRow: {
-    flexDirection: 'row',
-    marginBottom: 5,
-  },
-  setText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    width: 60,
-    color: '#ccc',
-  },
-  setDetails: {
-    fontSize: 14,
-    color: '#ccc',
-  },
-  cardioRow: {
-    flexDirection: 'row',
-    marginBottom: 5,
-  },
-  cardioLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    width: 80,
-    color: '#ccc',
-  },
-  cardioValue: {
-    fontSize: 14,
-    color: '#ccc',
-  },
-  notesContainer: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#333',
-    borderRadius: 5,
-  },
-  notesLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#ccc',
-  },
-  notesText: {
-    fontSize: 14,
-    color: '#ccc',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#ccc',
-    textAlign: 'center',
-    padding: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#e74c3c',
-    textAlign: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ccc',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#aaa',
-    textAlign: 'center',
-  },
-});

@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase/supabase';
 import plan_styles from '@/styles/plan_style';
 import { DailyPlan } from '@/types/workout';
 import ProgressChart from '@/components/workout/ProgressChart';
-import ExerciseWorkoutHistory from '@/components/exercise/ExerciseWorkoutHistory';
+import WorkoutHistory from '@/components/global/WorkoutHistory';
 
 interface CurrentPlanProps {
   weeklyPlan: DailyPlan[];
@@ -17,6 +17,7 @@ interface CurrentPlanProps {
 export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: CurrentPlanProps) {
   const [userId, setUserId] = useState<string | null>(null);
   const [expandedExercises, setExpandedExercises] = useState<Record<string, boolean>>({});
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
   useEffect(() => {
     // Get the current user
@@ -28,6 +29,25 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: Cur
     }
     
     getCurrentUser();
+  }, []);
+
+  // Listen for workout log updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('workout_logs_changes_plan')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'workout_logs'
+      }, () => {
+        // Increment the refresh trigger to reload workout history
+        setHistoryRefreshTrigger(prev => prev + 1);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const toggleExerciseExpansion = (exerciseName: string) => {
@@ -104,9 +124,10 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: Cur
                       profileId={userId} 
                       exerciseName={exercise.name} 
                     />
-                    <ExerciseWorkoutHistory
+                    <WorkoutHistory
                       profileId={userId}
                       exerciseName={exercise.name}
+                      refreshTrigger={historyRefreshTrigger}
                     />
                   </View>
                 )}
