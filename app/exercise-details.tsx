@@ -1,6 +1,7 @@
 import { View, ScrollView, ImageBackground, ActivityIndicator, Text } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase/supabase';
 import detail_styles from '@/styles/excercise-details_style';
 import exerciseLibrary from '@/constants/exercise_lib';
 import ExerciseHeader from '@/components/exercise/ExerciseHeader';
@@ -10,6 +11,8 @@ import ExerciseInstructions from '@/components/exercise/ExerciseInstructions';
 import ExerciseBenefits from '@/components/exercise/ExerciseBenefits';
 import ExerciseGif from '@/components/exercise/ExerciseGif';
 import ExerciseEquipment from '@/components/exercise/ExerciseEquipment';
+import ProgressChart from '@/components/workout/ProgressChart';
+import WorkoutHistory from '@/components/global/WorkoutHistory';
 import { fetchExercises } from '@/lib/api/exercise';
 
 interface ApiExercise {
@@ -45,8 +48,38 @@ export default function ExerciseDetailsScreen() {
   const [exercise, setExercise] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
+  // Listen for workout log updates
   useEffect(() => {
+    const channel = supabase
+      .channel('workout_logs_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'workout_logs'
+      }, () => {
+        // Increment the refresh trigger to reload workout history
+        setHistoryRefreshTrigger(prev => prev + 1);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+  useEffect(() => {
+    // Get the current user
+    async function getCurrentUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    }
+    
+    getCurrentUser();
+    
     async function getExerciseData() {
       try {
         setLoading(true);
@@ -163,6 +196,21 @@ export default function ExerciseDetailsScreen() {
             <ExerciseInstructions instructions={exercise.instructions} />
 
             <ExerciseBenefits benefits={exercise.benefits} />
+            
+            {userId && (
+              <View style={detail_styles.progressSection}>
+                <Text style={detail_styles.progressTitle}>Your Progress</Text>
+                <ProgressChart 
+                  profileId={userId} 
+                  exerciseName={exercise.name} 
+                />
+                <WorkoutHistory
+                  profileId={userId}
+                  exerciseName={exercise.name}
+                  refreshTrigger={historyRefreshTrigger}
+                />
+              </View>
+            )}
           </ScrollView>
         </View>
       </ImageBackground>

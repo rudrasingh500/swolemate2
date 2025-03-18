@@ -142,6 +142,14 @@ const home_styles = StyleSheet.create({
       flex: 1,
       marginRight: 15,
     },
+    workoutInfoContent: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    miniProgressContainer: {
+      marginLeft: 10,
+    },
     workoutName: {
       color: 'white',
       fontSize: 16,
@@ -166,14 +174,18 @@ const home_styles = StyleSheet.create({
       backgroundColor: 'rgba(46, 204, 113, 0.2)',
       color: '#2ecc71',
     },
-    scheduled: {
-      backgroundColor: 'rgba(231, 76, 60, 0.2)',
-      color: '#e74c3c',
-    },
-    planned: {
-      backgroundColor: 'rgba(52, 152, 219, 0.2)',
-      color: '#3498db',
-    },
+  scheduled: {
+    backgroundColor: 'rgba(231, 76, 60, 0.2)',
+    color: '#e74c3c',
+  },
+  inProgress: {
+    backgroundColor: 'rgba(241, 196, 15, 0.2)',
+    color: '#f1c40f',
+  },
+  planned: {
+    backgroundColor: 'rgba(52, 152, 219, 0.2)',
+    color: '#3498db',
+  },
     checkboxContainer: {
       padding: 4,
     },
@@ -207,6 +219,47 @@ const home_styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
       paddingHorizontal: 20,
+    },
+    // Confirmation dialog styles
+    confirmationOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    confirmationDialog: {
+      width: '80%',
+      backgroundColor: '#222',
+      borderRadius: 10,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: '#333',
+    },
+    confirmationTitle: {
+      color: 'white',
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 15,
+    },
+    confirmationText: {
+      color: '#ccc',
+      fontSize: 16,
+      marginBottom: 20,
+    },
+    confirmationButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    removeButton: {
+      backgroundColor: '#e74c3c',
+      borderRadius: 5,
+    },
+    cancelButton: {
+      borderColor: '#999',
+      borderRadius: 5,
+    },
+    cancelButtonText: {
+      color: '#999',
     },
 });
 export default home_styles;
