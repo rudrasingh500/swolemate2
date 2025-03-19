@@ -312,7 +312,10 @@ export default function LoggingModal({ isVisible, onClose, onSubmit, exerciseNam
             </TouchableOpacity>
           </View>
           
-          <ScrollView style={log_styles.modalBody}>
+          <ScrollView 
+            style={log_styles.modalBody}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}>
             {/* Strength Exercise Form */}
             {exerciseType === 'strength' && (
               <View style={log_styles.formSection}>

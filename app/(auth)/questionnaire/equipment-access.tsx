@@ -67,7 +67,10 @@ export default function EquipmentAccess() {
             <Text h2 style={questionnaire_styles.title}>Equipment Access</Text>
             <Text style={questionnaire_styles.subtitle}>Step 5 of 5</Text>
 
-            <ScrollView style={questionnaire_styles.equipmentContainer}>
+            <ScrollView 
+              style={questionnaire_styles.equipmentContainer}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}>
               {equipmentList.map(equipment => (
                 <CheckBox
                   key={equipment.id}

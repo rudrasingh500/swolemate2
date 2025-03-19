@@ -29,7 +29,10 @@ export default function FormAnalysisScreen() {
         resizeMode="cover"
       >
         <View style={analysis_styles.overlay}>
-          <ScrollView style={analysis_styles.scrollView}>
+          <ScrollView 
+            style={analysis_styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}>
             <View style={analysis_styles.topSection}>
               <Text h2 style={analysis_styles.title}>Form Analysis</Text>
               <VideoCapture onVideoSelected={setVideoUri} />

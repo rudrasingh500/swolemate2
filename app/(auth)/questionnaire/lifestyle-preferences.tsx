@@ -87,7 +87,10 @@ export default function LifestylePreferences() {
             <Text h2 style={questionnaire_styles.title}>Lifestyle Preferences</Text>
             <Text style={questionnaire_styles.subtitle}>Step 4 of 5</Text>
 
-            <ScrollView style={questionnaire_styles.formContainer}>
+            <ScrollView 
+              style={questionnaire_styles.formContainer}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}>
               <Text style={questionnaire_styles.sectionTitle}>Preferred Workout Environments</Text>
               {workoutEnvironments.map(env => (
                 <CheckBox

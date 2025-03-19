@@ -62,7 +62,10 @@ export default function FitnessGoals() {
             <Text h2 style={questionnaire_styles.title}>Fitness Goals</Text>
             <Text style={questionnaire_styles.subtitle}>Step 3 of 5</Text>
 
-            <ScrollView style={questionnaire_styles.goalsContainer}>
+            <ScrollView 
+              style={questionnaire_styles.goalsContainer}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}>
               {fitnessGoals.map(goal => (
                 <CheckBox
                   key={goal.id}

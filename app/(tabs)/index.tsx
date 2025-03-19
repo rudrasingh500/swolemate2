@@ -431,7 +431,11 @@ export default function TabsMainScreen() {
           resizeMode="cover"
         >
           <View style={home_styles.overlay}>
-            <ScrollView style={home_styles.content} contentContainerStyle={{ flexGrow: 1 }}>
+            <ScrollView 
+              style={home_styles.content} 
+              contentContainerStyle={{ flexGrow: 1 }}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}>
               <EmptyStateView workoutStreak={workoutStreak} />
             </ScrollView>
           </View>
@@ -447,7 +451,11 @@ export default function TabsMainScreen() {
         resizeMode="cover"
       >
         <View style={home_styles.overlay}>
-          <ScrollView style={home_styles.content} contentContainerStyle={{ flexGrow: 1 }}>
+          <ScrollView 
+              style={home_styles.content} 
+              contentContainerStyle={{ flexGrow: 1 }}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}>
             <StreakDisplay streak={workoutStreak} />
             
             <HealthWidgets />

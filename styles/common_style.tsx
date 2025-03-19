@@ -81,6 +81,13 @@ const common_styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+  // ScrollView Styles
+  scrollViewStyle: {
+    flex: 1,
+    showsVerticalScrollIndicator: false,
+    showsHorizontalScrollIndicator: false,
+  },
 });
 
 export default common_styles;
