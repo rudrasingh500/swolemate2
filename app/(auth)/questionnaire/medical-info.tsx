@@ -73,7 +73,10 @@ export default function MedicalInfo() {
             <Text h2 style={questionnaire_styles.title}>Health Profile</Text>
             <Text style={questionnaire_styles.subtitle}>Step 2 of 5</Text>
 
-            <ScrollView style={questionnaire_styles.formContainer}>
+            <ScrollView 
+              style={questionnaire_styles.formContainer}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}>
               <Text style={questionnaire_styles.sectionTitle}>Medical Conditions</Text>
               {medicalConditions.map(condition => (
                 <CheckBox

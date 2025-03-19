@@ -163,7 +163,10 @@ export default function ProfileScreen() {
         resizeMode="cover"
       >
         <View style={profile_styles.overlay}>
-          <ScrollView style={profile_styles.scrollView}>
+          <ScrollView 
+              style={profile_styles.scrollView}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}>
             <ProfileHeader
               profile={profile}
               editing={editing}

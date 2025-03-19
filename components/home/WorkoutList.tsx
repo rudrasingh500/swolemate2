@@ -53,7 +53,10 @@ export default function WorkoutList({
   return (
     <>
       <Text style={[home_styles.sectionTitle, style]}>{title}</Text>
-      <ScrollView style={home_styles.workoutsList}>
+      <ScrollView 
+        style={home_styles.workoutsList}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}>
         {workouts.length > 0 ? (
           workouts.map(workout => (
             <View key={workout.id} style={home_styles.workoutItem}>

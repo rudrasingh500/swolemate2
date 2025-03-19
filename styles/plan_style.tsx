@@ -26,11 +26,14 @@ const plan_styles = StyleSheet.create({
     },
     overlay: {
       ...common_styles.overlay,
-      paddingTop: 80,
+      paddingTop: 60,
+      paddingHorizontal: 20,
     },
     content: {
       ...common_styles.content,
-      paddingHorizontal: 15,
+      width: '100%',
+      maxWidth: 600,
+      alignSelf: 'center',
     },
     header: {
       flexDirection: 'row',
@@ -206,7 +209,7 @@ const plan_styles = StyleSheet.create({
       borderRadius: 10,
       padding: 15,
       width: '100%',
-      marginBottom: 0,
+      marginBottom: 15,
     },
     planTitle: {
       color: 'white',

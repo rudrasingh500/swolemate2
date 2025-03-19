@@ -73,7 +73,10 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: Cur
         <Text style={plan_styles.goalText}>{currentGoal}</Text>
       </View>
 
-      <ScrollView style={plan_styles.planContainer}>
+      <ScrollView 
+        style={plan_styles.planContainer}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}>
         {weeklyPlan.map((day, index) => (
           <View key={index} style={plan_styles.dayContainer}>
             <View style={plan_styles.dayHeader}>

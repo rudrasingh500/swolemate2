@@ -211,6 +211,8 @@ export default function WorkoutHistory({
       <ScrollView 
         style={isExerciseSpecific ? styles.scrollContainer : styles.generalScrollContainer} 
         nestedScrollEnabled={isExerciseSpecific}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
       >
         {Object.keys(groupedLogs)
           .sort((a, b) => new Date(b).getTime() - new Date(a).getTime()) // Sort dates in descending order

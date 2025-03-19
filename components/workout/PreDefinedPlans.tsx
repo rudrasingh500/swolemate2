@@ -17,7 +17,10 @@ export default function PreDefinedPlans({
   onBackToCurrentPlan
 }: PreDefinedPlansProps) {
   return (
-    <ScrollView style={plan_styles.content}>
+    <ScrollView 
+      style={plan_styles.content}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}>
       {!isInitialView && onBackToCurrentPlan && (
         <View style={plan_styles.header}>
           <Button

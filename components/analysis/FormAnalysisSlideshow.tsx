@@ -99,7 +99,10 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
               }]} 
             />
           </View>
-          <ScrollView style={analysis_styles.slideContentScroll}>
+          <ScrollView 
+            style={analysis_styles.slideContentScroll}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}>
             {renderAnalysisContent()}
           </ScrollView>
           <View style={analysis_styles.navigationContainer}>

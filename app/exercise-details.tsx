@@ -87,6 +87,8 @@ export default function ExerciseDetailsScreen() {
         if (typeof name === 'string') {
           // Process the search term to handle case sensitivity and plural forms
           const processedName = singularizeExerciseName(name.toLowerCase().trim());
+          // Using limit: 1 here, but the fetchExercises function will internally use a higher limit
+          // to ensure better matching before filtering down to the best result
           const exerciseData = await fetchExercises({ name: processedName, limit: 1 });
           
           if (exerciseData && exerciseData.length > 0) {
@@ -174,7 +176,10 @@ export default function ExerciseDetailsScreen() {
       >
         <View style={detail_styles.overlay}>
           <ExerciseHeader title={exercise.name} />
-          <ScrollView style={detail_styles.content}>
+          <ScrollView 
+            style={detail_styles.content}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}>
             {exercise.gifUrl && (
               <ExerciseGif gifUrl={exercise.gifUrl} />
             )}
