@@ -20,7 +20,7 @@ export type Database = {
           weight: number | null
           age: number | null
           medical_conditions: string[] | null
-          activity_level: 'sedentary' | 'light' | 'moderate' | 'very_active' | 'extra_active' | null
+          activity_level: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active' | null
           fitness_goals: string[] | null
           available_equipment: string[] | null
         }
