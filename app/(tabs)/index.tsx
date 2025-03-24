@@ -12,7 +12,7 @@ import WorkoutList from '@/components/home/WorkoutList';
 import StreakDisplay from '@/components/home/StreakDisplay';
 import EmptyStateView from '@/components/home/EmptyStateView';
 import HealthWidgets from '@/components/home/HealthWidgets';
-import LoggingModal from '@/components/workout/LoggingModal';
+import LoggingModal from '@/components/home/LoggingModal';
 import WorkoutHistory from '@/components/global/WorkoutHistory';
 
 export default function TabsMainScreen() {
