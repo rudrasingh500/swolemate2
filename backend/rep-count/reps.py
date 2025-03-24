@@ -404,9 +404,9 @@ class ExerciseRepProcessor:
         frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS)
         
-        troughs, _ = find_peaks(-signal)
+        troughs, _ = find_peaks(-signal, distance=25)
         
-        for i, trough in enumerate(troughs[:-1]):
+        for i in range(len(troughs)-1):
             start_frame = troughs[i]
             end_frame = min(len(signal), troughs[i+1])
             
@@ -428,7 +428,7 @@ class ExerciseRepProcessor:
         
         cap.release()
         
-        print(f"Split {len(troughs)} reps into separate videos in {output_dir}")
+        print(f"Split {len(troughs)-1} reps into separate videos in {output_dir}")
 
 def main(video_path, exercise_type):
     processor = ExerciseRepProcessor()
