@@ -28,6 +28,20 @@ class ExerciseRepProcessor:
             'left_knee': 25, 'right_knee': 26,
             'left_ankle': 27, 'right_ankle': 28
         }
+
+        self.prominences = {
+            "pushup": 0.15,
+            "shoulder_press": 0.5,
+            "squat": 0.25,
+            "bicep_curl": 0.3,
+        }
+
+        self.distances = {
+            "pushup": 10,
+            "shoulder_press": 25,
+            "squat": 10,
+            "bicep_curl": 10,
+        }
     
     def extract_poses(self, video_path, rep_threshold=0.6, min_rep_duration=15, smoothing_window=5):
         """
@@ -404,7 +418,10 @@ class ExerciseRepProcessor:
         frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS)
         
-        troughs, _ = find_peaks(-signal, distance=25)
+        distance = self.distances.get(exercise_type, 10)
+        prominence = self.prominences.get(exercise_type, 0.1)
+
+        troughs, _ = find_peaks(-signal, distance=distance)
         
         for i in range(len(troughs)-1):
             start_frame = troughs[i]
