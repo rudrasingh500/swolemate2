@@ -32,26 +32,45 @@ export default function TabLayout() {
               name="index"
               options={{
                 headerShown: false,
-                tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+                tabBarIcon: ({ color }) => (
+                  <TabBarIcon name="home" color={color} />
+                ),
               }}
             />
             <Tabs.Screen
               name="workout-plan"
               options={{
-                tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} />,
+                tabBarIcon: ({ color }) => (
+                  <TabBarIcon name="calendar" color={color} />
+                ),
               }}
             />
             <Tabs.Screen
               name="form-analysis"
               options={{
-                title: "Form Analysis",
-                tabBarIcon: ({ color }) => <TabBarIcon name="video-camera" color={color} />,
+                title: 'Form Analysis',
+                tabBarIcon: ({ color }) => (
+                  <TabBarIcon name="video-camera" color={color} />
+                ),
               }}
             />
             <Tabs.Screen
+              name="achievements"
+              options={{
+                title: 'Achievements',
+                tabBarIcon: ({ color }) => (
+                  <TabBarIcon name="trophy" color={color} />
+                ),
+              }}
+            />
+            {/* Remove the achievements-detail tab from the tab bar since it should be accessed via navigation from achievements screen */}
+            {/* This screen should be defined in a separate file, not in the tab navigation */}
+            <Tabs.Screen
               name="profile"
               options={{
-                tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+                tabBarIcon: ({ color }) => (
+                  <TabBarIcon name="user" color={color} />
+                ),
               }}
             />
           </Tabs>
@@ -61,7 +80,10 @@ export default function TabLayout() {
   );
 }
 
-function TabBarIcon(props: { name: React.ComponentProps<typeof FontAwesome>['name']; color: string }) {
+function TabBarIcon(props: {
+  name: React.ComponentProps<typeof FontAwesome>['name'];
+  color: string;
+}) {
   return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
 }
 
