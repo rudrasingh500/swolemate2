@@ -16,7 +16,7 @@ interface CurrentPlanProps {
 
 export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: CurrentPlanProps) {
   const [userId, setUserId] = useState<string | null>(null);
-  const [expandedExercises, setExpandedExercises] = useState<Record<string, boolean>>({});
+  const [expandedExercises, setExpandedExercises] = useState<Record<string, boolean>>({}); // Key will be `${dayIndex}-${exerciseIndex}`
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
   useEffect(() => {
@@ -50,10 +50,11 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: Cur
     };
   }, []);
 
-  const toggleExerciseExpansion = (exerciseName: string) => {
+  const toggleExerciseExpansion = (dayIndex: number, exerciseIndex: number) => {
+    const key = `${dayIndex}-${exerciseIndex}`;
     setExpandedExercises(prev => ({
       ...prev,
-      [exerciseName]: !prev[exerciseName]
+      [key]: !prev[key]
     }));
   };
   return (
@@ -84,7 +85,9 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: Cur
               <Text style={plan_styles.timeFrame}>{day.timeFrame}</Text>
             </View>
 
-            {day.exercises.map((exercise, exerciseIndex) => (
+            {day.exercises.map((exercise, exerciseIndex) => {
+              const uniqueKey = `${index}-${exerciseIndex}`; // Use day index (index) and exercise index
+              return (
               <View key={exerciseIndex} style={plan_styles.exerciseContainer}>
                 <TouchableOpacity
                   style={plan_styles.exerciseItem}
@@ -107,13 +110,13 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: Cur
                 {userId && (
                   <TouchableOpacity 
                     style={plan_styles.expandButton}
-                    onPress={() => toggleExerciseExpansion(exercise.name)}
+                    onPress={() => toggleExerciseExpansion(index, exerciseIndex)} // Pass day and exercise index
                   >
                     <Text style={plan_styles.expandButtonText}>
-                      {expandedExercises[exercise.name] ? 'Hide Progress' : 'Show Progress'}
+                      {expandedExercises[uniqueKey] ? 'Hide Progress' : 'Show Progress'}
                     </Text>
                     <Icon 
-                      name={expandedExercises[exercise.name] ? 'chevron-up' : 'chevron-down'} 
+                      name={expandedExercises[uniqueKey] ? 'chevron-up' : 'chevron-down'} 
                       type="material-community" 
                       size={16} 
                       color="#e74c3c" 
@@ -121,7 +124,7 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: Cur
                   </TouchableOpacity>
                 )}
                 
-                {userId && expandedExercises[exercise.name] && (
+                {userId && expandedExercises[uniqueKey] && (
                   <View style={plan_styles.progressContainer}>
                     <ProgressChart 
                       profileId={userId} 
@@ -135,7 +138,8 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: Cur
                   </View>
                 )}
               </View>
-            ))}
+            );
+          })}
           </View>
         ))}
       </ScrollView>
