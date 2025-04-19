@@ -180,31 +180,6 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-      },
-      form_analyses: {
-        Row: {
-          id: string
-          user_id: string
-          video_storage_path: string
-          analysis_data: Json
-          exercise_name: string | null // Generated column
-          total_reps: number | null // Generated column
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          video_storage_path: string
-          analysis_data: Json
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          video_storage_path?: string
-          analysis_data?: Json
-          created_at?: string
-        }
       }
     }
   }

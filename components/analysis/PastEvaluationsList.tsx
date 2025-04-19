@@ -9,13 +9,15 @@ interface Evaluation {
   score: number;
   feedback: string;
 }
-  id: number;
-  date: string;
+
+interface PastEvaluationsListProps {
   evaluations: Evaluation[];
   onPress: (evaluation: Evaluation) => void;
-  feedback: string;
 }
 
+export default function PastEvaluationsList({ evaluations, onPress }: PastEvaluationsListProps) {
+  return (
+    <View style={analysis_styles.bottomSection}>
       <Text h3 style={analysis_styles.sectionTitle}>Past Evaluations</Text>
       {evaluations.map(evaluation => (
         <TouchableOpacity key={evaluation.id} onPress={() => onPress(evaluation)}>

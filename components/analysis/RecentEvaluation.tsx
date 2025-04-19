@@ -1,18 +1,22 @@
 import { View, TouchableOpacity } from 'react-native';
 import { Text, Card } from '@rneui/themed';
 import analysis_styles from '@/styles/form-analysis_style';
-  evaluation: {
-    date: string;
+
+interface RecentEvaluationProps {
   evaluation: {
     date: string;
     exercise: string;
     score: number;
     feedback: string;
   };
-    score: number;
-    feedback: string;
-  };
   onPress: () => void;
+}
+
+export default function RecentEvaluation({ evaluation, onPress }: RecentEvaluationProps) {
+  return (
+    <TouchableOpacity onPress={onPress}>
+      <Card containerStyle={analysis_styles.recentEvalCard}>
+        <Card.Title style={analysis_styles.cardTitle}>Most Recent Evaluation</Card.Title>
         <View style={analysis_styles.scoreContainer}>
           <Text style={analysis_styles.scoreText}>{evaluation.score}%</Text>
           <Text style={analysis_styles.scoreLabel}>Form Score</Text>
