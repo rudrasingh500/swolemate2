@@ -1,7 +1,4 @@
 import { View } from 'react-native';
-import { Text, Button } from '@rneui/themed';
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import analysis_styles from '@/styles/form-analysis_style';
 
@@ -13,7 +10,6 @@ export default function VideoCapture({ onVideoSelected }: VideoCaptureProps) {
   const [videoUri, setVideoUri] = useState<string | null>(null);
 
   async function startRecording() {
-    try {
       const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
       if (permissionResult.granted === false) {
         alert('Camera permission is required!');
@@ -33,9 +29,8 @@ export default function VideoCapture({ onVideoSelected }: VideoCaptureProps) {
         console.log('Video recorded:', result.assets[0]);
       }
     } catch (error) {
-      console.error('Error recording video:', error);
+        onVideoSelected(uri);
       alert('Failed to record video');
-    }
   }
 
   async function pickVideo() {
@@ -60,9 +55,8 @@ export default function VideoCapture({ onVideoSelected }: VideoCaptureProps) {
       }
     } catch (error) {
       console.error('Error picking video:', error);
-      alert('Failed to select video');
+        onVideoSelected(uri);
     }
-  }
 
   return (
     <View style={analysis_styles.analysisSection}>
@@ -70,17 +64,3 @@ export default function VideoCapture({ onVideoSelected }: VideoCaptureProps) {
         title="Start Form Analysis"
         icon={<Ionicons name="videocam" size={24} color="white" style={analysis_styles.buttonIcon} />}
         containerStyle={analysis_styles.mainButtonContainer}
-        buttonStyle={analysis_styles.mainButton}
-        onPress={startRecording}
-      />
-      <Text style={analysis_styles.uploadText}>or</Text>
-      <Button
-        title="Upload Video"
-        type="clear"
-        titleStyle={analysis_styles.uploadButtonText}
-        icon={<Ionicons name="cloud-upload" size={20} color="#e0e0e0" style={analysis_styles.buttonIcon} />}
-        onPress={pickVideo}
-      />
-    </View>
-  );
-}

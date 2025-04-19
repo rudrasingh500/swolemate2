@@ -2,28 +2,25 @@ import { View, ScrollView, Modal } from 'react-native';
 import { Text, Button } from '@rneui/themed';
 import { useState, useEffect } from 'react';
 import analysis_styles from '@/styles/form-analysis_style';
-
+interface FormAnalysisProps {
 interface FormAnalysisProps {
   selectedAnalysis: any;
-  isVisible: boolean;
   onClose: () => void;
 }
 
 export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onClose }: FormAnalysisProps) {
+export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onClose }: FormAnalysisProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
-
   // Reset slide position when a new slideshow is opened
-  useEffect(() => {
+  // Reset slide position when a new slideshow is opened
     if (isVisible) {
       setCurrentSlide(0);
     }
   }, [isVisible]);
-
-  const nextSlide = () => {
-    if (selectedAnalysis && currentSlide < selectedAnalysis.reps.length + 1) {
+  }, [isVisible]);
       setCurrentSlide(currentSlide + 1);
     }
-  };
+    if (selectedAnalysis && currentSlide < selectedAnalysis.reps.length + 1) {
 
   const prevSlide = () => {
     if (currentSlide > 0) {
@@ -37,6 +34,9 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
     if (currentSlide === 0) {
       return (
         <View style={analysis_styles.slideContent}>
+          <Text style={analysis_styles.dateText}>{selectedAnalysis.date}</Text>
+          {selectedAnalysis.recommendations.map((rec: string, index: number) => (
+            <Text key={index} style={analysis_styles.bulletPoint}>• {rec}</Text>
           <Text h3 style={analysis_styles.slideTitle}>Overall Analysis</Text>
           <Text style={analysis_styles.dateText}>{selectedAnalysis.date}</Text>
           <View style={analysis_styles.scoreContainer}>
@@ -52,13 +52,13 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
       );
     } else if (currentSlide <= selectedAnalysis.reps.length) {
       const rep = selectedAnalysis.reps[currentSlide - 1];
-      return (
-        <View style={analysis_styles.slideContent}>
+            <Text key={index} style={analysis_styles.bulletPoint}>• {change}</Text>
+          ))}
           <Text h3 style={analysis_styles.slideTitle}>Rep {rep.repNumber} Analysis</Text>
-          <View style={analysis_styles.scoreContainer}>
+      );
             <Text style={analysis_styles.scoreText}>{rep.score}%</Text>
             <Text style={analysis_styles.scoreLabel}>Rep Score</Text>
-          </View>
+
           {rep.mistakes.map((mistake: any, index: number) => (
             <View key={index} style={analysis_styles.mistakeContainer}>
               <View style={analysis_styles.mistakeOverlay}>
@@ -78,33 +78,9 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
           {selectedAnalysis.workoutAdjustment.changes.map((change: string, index: number) => (
             <Text key={index} style={analysis_styles.bulletPoint}>• {change}</Text>
           ))}
-        </View>
-      );
-    }
-  };
-
-  return (
-    <Modal
-      visible={isVisible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-    >
-      <View style={analysis_styles.modalContainer}>
-        <View style={analysis_styles.modalContent}>
-          <View style={analysis_styles.progressBar}>
-            <View 
-              style={[analysis_styles.progressFill, { 
-                width: `${((currentSlide + 1) / (selectedAnalysis ? selectedAnalysis.reps.length + 2 : 1)) * 100}%` 
-              }]} 
-            />
-          </View>
           <ScrollView 
             style={analysis_styles.slideContentScroll}
             showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}>
-            {renderAnalysisContent()}
-          </ScrollView>
           <View style={analysis_styles.navigationContainer}>
             <Button
               title="Previous"
@@ -117,13 +93,13 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
             />
             <Button
               title="Close"
-              onPress={onClose}
-              buttonStyle={[analysis_styles.navButton, analysis_styles.closeButton]}
-              titleStyle={analysis_styles.navButtonText}
-            />
+            <View 
+              style={[analysis_styles.progressFill, { 
+                width: `${((currentSlide + 1) / (selectedAnalysis ? selectedAnalysis.reps.length + 2 : 1)) * 100}%` 
+              }]} 
             <Button
               title="Next"
-              onPress={nextSlide}
+          <ScrollView 
               disabled={selectedAnalysis && currentSlide === selectedAnalysis.reps.length + 1}
               buttonStyle={analysis_styles.navButton}
               titleStyle={analysis_styles.navButtonText}

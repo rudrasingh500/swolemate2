@@ -1,11 +1,8 @@
 import { View, ScrollView, ImageBackground } from 'react-native';
-import { Text } from '@rneui/themed';
-import { useState } from 'react';
 import analysis_styles from '@/styles/form-analysis_style';
-import { PLACEHOLDER_ANALYSIS, PAST_EVALUATIONS, RECENT_EVALUATION } from '@/constants/form_analysis';
 import FormAnalysisSlideshow from '@/components/analysis/FormAnalysisSlideshow';
 import RecentEvaluation from '@/components/analysis/RecentEvaluation';
-import PastEvaluationsList from '@/components/analysis/PastEvaluationsList';
+import { PLACEHOLDER_ANALYSIS, PAST_EVALUATIONS, RECENT_EVALUATION } from '@/constants/form_analysis';
 import VideoCapture from '@/components/analysis/VideoCapture';
 
 export default function FormAnalysisScreen() {
