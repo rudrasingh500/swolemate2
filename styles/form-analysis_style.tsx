@@ -118,6 +118,8 @@ const analysis_styles = StyleSheet.create({
     modalContainer: {
       flex: 1,
       backgroundColor: 'rgba(0, 0, 0, 0.9)',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     modalContent: {
       backgroundColor: 'rgba(40, 40, 40, 0.95)',
@@ -127,7 +129,8 @@ const analysis_styles = StyleSheet.create({
       maxHeight: '80%',
       height: Dimensions.get('window').height * 0.8,
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      alignSelf: 'center',
     },
     progressBar: {
       width: '100%',
