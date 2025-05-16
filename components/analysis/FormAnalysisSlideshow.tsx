@@ -1,7 +1,11 @@
-import { View, ScrollView, Modal } from 'react-native';
+import { View, ScrollView, Modal, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import { Text, Button } from '@rneui/themed';
 import { useState, useEffect } from 'react';
 import analysis_styles from '@/styles/form-analysis_style';
+
+// Get screen dimensions
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
 interface FormAnalysisProps {
   selectedAnalysis: any;
@@ -17,7 +21,7 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
     if (isVisible) {
       setCurrentSlide(0);
     }
-  }, [isVisible]);
+  }, [isVisible, selectedAnalysis]);
 
   const nextSlide = () => {
     if (selectedAnalysis && currentSlide < selectedAnalysis.reps.length + 1) {
@@ -39,9 +43,10 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
         <View style={analysis_styles.slideContent}>
           <Text h3 style={analysis_styles.slideTitle}>Overall Analysis</Text>
           <Text style={analysis_styles.dateText}>{selectedAnalysis.date}</Text>
-          <View style={analysis_styles.scoreContainer}>
-            <Text style={analysis_styles.scoreText}>{selectedAnalysis.overallScore}%</Text>
-            <Text style={analysis_styles.scoreLabel}>Form Score</Text>
+          
+          <View style={analysis_styles.slideshowScoreContainer}>
+            <Text style={analysis_styles.slideshowScoreText}>{selectedAnalysis.overallScore}%</Text>
+            <Text style={analysis_styles.slideshowScoreLabel}>Form Score</Text>
           </View>
           <Text style={analysis_styles.feedbackText}>{selectedAnalysis.generalFeedback}</Text>
           <Text style={analysis_styles.subheading}>Key Points to Improve:</Text>
@@ -55,9 +60,10 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
       return (
         <View style={analysis_styles.slideContent}>
           <Text h3 style={analysis_styles.slideTitle}>Rep {rep.repNumber} Analysis</Text>
-          <View style={analysis_styles.scoreContainer}>
-            <Text style={analysis_styles.scoreText}>{rep.score}%</Text>
-            <Text style={analysis_styles.scoreLabel}>Rep Score</Text>
+          
+          <View style={analysis_styles.slideshowScoreContainer}>
+            <Text style={analysis_styles.slideshowScoreText}>{rep.score}%</Text>
+            <Text style={analysis_styles.slideshowScoreLabel}>Rep Score</Text>
           </View>
           {rep.mistakes.map((mistake: any, index: number) => (
             <View key={index} style={analysis_styles.mistakeContainer}>
@@ -95,7 +101,7 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
           <View style={analysis_styles.progressBar}>
             <View 
               style={[analysis_styles.progressFill, { 
-                width: `${((currentSlide + 1) / (selectedAnalysis ? selectedAnalysis.reps.length + 2 : 1)) * 100}%` 
+                width: `${((currentSlide + 1) / (selectedAnalysis ? selectedAnalysis.reps.length + 2 : 1)) * 100}%`
               }]} 
             />
           </View>
