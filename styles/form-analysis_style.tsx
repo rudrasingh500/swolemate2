@@ -281,19 +281,22 @@ const analysis_styles = StyleSheet.create({
     // Video player styles
     videoContainer: {
       width: '100%',
-      height: 220,
-      backgroundColor: '#000',
+      minHeight: 300,
+      backgroundColor: '#131313',
       borderRadius: 8,
       marginBottom: 20,
       overflow: 'hidden',
       position: 'relative',
       borderWidth: 1,
       borderColor: 'rgba(255, 255, 255, 0.1)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 10,
     },
     video: {
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#000',
+      backgroundColor: 'transparent',
+      alignSelf: 'center',
     },
     // Timestamp navigation button styles
     timestampButton: {

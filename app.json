@@ -23,7 +23,8 @@
     },
     "plugins": [
       "expo-router",
-      "react-native-health"
+      "react-native-health",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true
