@@ -310,7 +310,7 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
       return (
         <View style={analysis_styles.slideContent}>
           <Text h3 style={analysis_styles.slideTitle}>Overall Analysis</Text>
-          <Text style={analysis_styles.dateText}>{selectedAnalysis.date}</Text>
+          <Text style={analysis_styles.dateText}>{formatDate(selectedAnalysis.date)}</Text>
           
           <View style={analysis_styles.slideshowScoreContainer}>
             <Text style={analysis_styles.slideshowScoreText}>{selectedAnalysis.overallScore}%</Text>
@@ -390,6 +390,34 @@ export default function FormAnalysisSlideshow({ selectedAnalysis, isVisible, onC
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  };
+  
+  // Helper function to format ISO date strings to a user-friendly format
+  const formatDate = (dateString: string) => {
+    try {
+      if (!dateString) return '';
+      
+      const date = new Date(dateString);
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return dateString; // Return original if invalid
+      }
+      
+      // Format as "Month Day, Year at Time"
+      const options: Intl.DateTimeFormatOptions = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      
+      return date.toLocaleDateString('en-US', options);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString; // Return original if error occurs
+    }
   };
 
   // Effect to ensure video is paused when initially loaded

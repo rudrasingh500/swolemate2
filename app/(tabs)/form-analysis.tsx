@@ -53,6 +53,34 @@ interface FormAnalysis extends Evaluation {
   videoUrl?: string;
 }
 
+// Helper function to format ISO date strings to a user-friendly format
+const formatDate = (dateString: string) => {
+  try {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return dateString; // Return original if invalid
+    }
+    
+    // Format as "Month Day, Year at Time"
+    const options: Intl.DateTimeFormatOptions = { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    
+    return date.toLocaleDateString('en-US', options);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString; // Return original if error occurs
+  }
+};
+
 export default function FormAnalysisScreen() {
   const { user } = useAuth();
   const [videoUri, setVideoUri] = useState<string | null>(null);
@@ -133,7 +161,7 @@ export default function FormAnalysisScreen() {
         
         return {
           id: record.id,
-          date: new Date(record.created_at).toISOString(),
+          date: formatDate(new Date(record.created_at).toISOString()),
           exercise: analysisData?.exercise || 'Unknown Exercise',
           score: score,
           feedback: `Completed ${analysisData?.total_reps || 0} reps with ${score}% accuracy`,
@@ -426,7 +454,7 @@ export default function FormAnalysisScreen() {
         // Create a structured result
         const formAnalysis: FormAnalysis = {
           id: Date.now(),
-          date: new Date().toISOString(),
+          date: formatDate(new Date().toISOString()),
           exercise: analysisData.exercise,
           score: overallScore,
           feedback: `Completed ${analysisData.total_reps} reps with ${overallScore}% accuracy`,
