@@ -9,12 +9,14 @@ interface PreDefinedPlansProps {
   onSelectPlan: (plan: PreDefinedPlan) => void;
   isInitialView?: boolean;
   onBackToCurrentPlan?: () => void;
+  onCreateCustomPlan?: () => void; // New prop for navigating to custom plan creation
 }
 
 export default function PreDefinedPlans({ 
   onSelectPlan, 
   isInitialView = false,
-  onBackToCurrentPlan
+  onBackToCurrentPlan,
+  onCreateCustomPlan // Destructure new prop
 }: PreDefinedPlansProps) {
   return (
     <ScrollView 
@@ -40,6 +42,33 @@ export default function PreDefinedPlans({
           />
         </View>
       )}
+      {/* Section for creating a custom plan manually */}
+      {onCreateCustomPlan && (
+        <TouchableOpacity 
+          style={[plan_styles.aiSection, plan_styles.customPlanButtonSection]} // Added a new style for distinction if needed
+          onPress={onCreateCustomPlan} // Use the new prop here
+        >
+          <Text h3 style={plan_styles.aiTitle}>Create Your Own Plan</Text>
+          <Text style={plan_styles.aiDescription}>
+            Build a workout plan from scratch, tailored to your exact preferences and split.
+          </Text>
+          <Button
+            title="Start Building"
+            onPress={onCreateCustomPlan} // Also use the new prop here
+            containerStyle={plan_styles.aiButton}
+            buttonStyle={plan_styles.aiButtonStyle} // Can reuse or create new style
+            titleStyle={plan_styles.buttonTitleStyle}
+            icon={{
+              name: 'pencil-plus-outline',
+              type: 'material-community',
+              size: 20,
+              color: 'white',
+              style: { marginRight: 10 }
+            }}
+          />
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity 
         style={plan_styles.aiSection}
         onPress={() => router.push('/questionnaire/basic-info')}

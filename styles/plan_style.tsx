@@ -75,8 +75,15 @@ const plan_styles = StyleSheet.create({
       borderColor: '#e74c3c',
     },
     editButtonText: {
-      color: '#e74c3c',
-    },
+    color: '#e74c3c',
+    fontSize: 14,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Or 'flex-start' or 'center' depending on desired alignment
+    marginTop: 10, // Add some margin above the buttons
+    width: '100%', // Ensure the row takes full width if needed
+  },
     goalTitle: {
       color: 'white',
       marginBottom: 5,

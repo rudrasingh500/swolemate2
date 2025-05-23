@@ -1,99 +1,104 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Animated, Dimensions } from 'react-native';
+/*
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, FlatList, Dimensions } from 'react-native';
 import { useAchievements, GameAchievement } from '@/hooks/useAchievements';
 import AchievementItem from './AchievementItem';
 
 interface AchievementGridProps {
   initialAchievements?: GameAchievement[];
   onAchievementUnlocked?: (achievement: GameAchievement) => void;
-  columns?: number;
+  onAchievementPress: (achievement: GameAchievement) => void; // Callback for when an item is pressed
 }
 
 const AchievementGrid: React.FC<AchievementGridProps> = ({
   initialAchievements,
   onAchievementUnlocked,
-  columns = 3,
+  onAchievementPress,
 }) => {
   const {
     achievements,
+    unlockAchievement, // We might still need this if tapping unlocks
     recentlyUnlocked,
-    unlockAchievement,
     clearRecentlyUnlocked,
-    resetAllAchievements,
   } = useAchievements(initialAchievements);
 
-  const [selectedAchievement, setSelectedAchievement] =
-    useState<GameAchievement | null>(null);
-  const [unlockAnimation] = useState(new Animated.Value(0));
-  const screenWidth = Dimensions.get('window').width;
-  const itemWidth = (screenWidth - 40 - (columns - 1) * 10) / columns; // 40 for horizontal margins, 10 for gap
+  const [numColumns, setNumColumns] = useState(2); // Default to 2 columns
+  const animationValues = useRef<{[key: string]: Animated.Value}>({});
 
-  // Handle achievement selection
-  const handleAchievementPress = (achievement: GameAchievement) => {
-    setSelectedAchievement(achievement);
+  // Calculate number of columns based on screen width
+  useEffect(() => {
+    const screenWidth = Dimensions.get('window').width;
+    const itemWidth = 150; // Approximate width of an achievement item
+    const calculatedNumColumns = Math.floor(screenWidth / itemWidth);
+    setNumColumns(Math.max(2, calculatedNumColumns)); // Ensure at least 2 columns
+  }, []);
 
-    // For demo purposes - tapping a locked achievement will unlock it
-    if (!achievement.isEarned) {
-      unlockAchievement(achievement.id);
-    }
-  };
+  // Initialize animation values for each achievement
+  useEffect(() => {
+    achievements.forEach(ach => {
+      if (!animationValues.current[ach.id]) {
+        animationValues.current[ach.id] = new Animated.Value(0);
+      }
+    });
+  }, [achievements]);
 
   // Handle animation when an achievement is unlocked
   useEffect(() => {
     if (recentlyUnlocked) {
-      Animated.sequence([
-        Animated.timing(unlockAnimation, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(unlockAnimation, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-
-      // Notify parent component if callback provided
-      if (onAchievementUnlocked) {
-        onAchievementUnlocked(recentlyUnlocked);
+      const animValue = animationValues.current[recentlyUnlocked.id];
+      if (animValue) {
+        Animated.sequence([
+          Animated.timing(animValue, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.delay(1000),
+          Animated.timing(animValue, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          if (onAchievementUnlocked) {
+            onAchievementUnlocked(recentlyUnlocked);
+          }
+          clearRecentlyUnlocked(); // Clear after animation and callback
+        });
       }
-
-      // Clear the recently unlocked achievement after animation
-      setTimeout(() => {
-        clearRecentlyUnlocked();
-      }, 1000);
     }
-  }, [recentlyUnlocked]);
+  }, [recentlyUnlocked, onAchievementUnlocked, clearRecentlyUnlocked]);
+
+  const renderItem = ({ item }: { item: GameAchievement }) => (
+    <AchievementItem
+      achievement={item}
+      onPress={() => onAchievementPress(item)} // Use the passed callback
+      isAnimating={recentlyUnlocked?.id === item.id}
+    />
+  );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.grid}>
-        {achievements.map((achievement) => (
-          <AchievementItem
-            key={achievement.id}
-            achievement={achievement}
-            onPress={() => handleAchievementPress(achievement)}
-            isAnimating={recentlyUnlocked?.id === achievement.id}
-            animationValue={unlockAnimation}
-            width={itemWidth}
-          />
-        ))}
-      </View>
-    </View>
+    <FlatList
+      data={achievements}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.id}
+      numColumns={numColumns}
+      columnWrapperStyle={styles.row}
+      contentContainerStyle={styles.gridContainer}
+      showsVerticalScrollIndicator={false}
+    />
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
+  gridContainer: {
+    paddingHorizontal: 5,
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
+  row: {
+    justifyContent: 'space-around',
+    marginBottom: 10,
   },
 });
 
 export default AchievementGrid;
+*/
