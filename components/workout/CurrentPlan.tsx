@@ -70,7 +70,7 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan, onCre
             title="Edit Plan"
             type="outline"
             onPress={onEditPlan} // This now leads to PreDefinedPlans or custom creation choice
-            containerStyle={plan_styles.editButton}
+            containerStyle={[plan_styles.editButton, { marginRight: 10 }]} // Added marginRight for spacing
             buttonStyle={plan_styles.editButtonStyle}
             titleStyle={plan_styles.editButtonText}
           />
@@ -78,7 +78,7 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan, onCre
             title="New Custom Plan"
             type="outline"
             onPress={onCreateCustomPlan} // Button to go to custom plan creation
-            containerStyle={[plan_styles.editButton, { marginLeft: 10 }]} // Adjust styling as needed
+            containerStyle={plan_styles.editButton} // Removed marginLeft from here as buttonRow centers them
             buttonStyle={plan_styles.editButtonStyle}
             titleStyle={plan_styles.editButtonText}
             icon={{ name: 'add-circle-outline', type: 'ionicon', size: 18, color: '#e74c3c', style: { marginRight: 5 } }}

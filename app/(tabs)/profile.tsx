@@ -25,8 +25,8 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     getProfile();
-    fetchWorkoutCount();
-    fetchAnalysisCount();
+    fetchWorkoutCountInternal();
+    fetchAnalysisCountInternal();
   }, []);
 
   async function getProfile() {
@@ -151,6 +151,38 @@ export default function ProfileScreen() {
     }
   }
 
+  async function fetchWorkoutCountInternal() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+      const { count, error } = await supabase
+        .from('workout_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('profile_id', user.id);
+      if (error) throw error;
+      setWorkoutCount(count || 0);
+    } catch (error) {
+      console.warn('Error fetching workout count:', error);
+      setWorkoutCount(0);
+    }
+  }
+
+  async function fetchAnalysisCountInternal() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+      const { count, error } = await supabase
+        .from('form_analyses')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      if (error) throw error;
+      setAnalysisCount(count || 0);
+    } catch (error) {
+      console.warn('Error fetching analysis count:', error);
+      setAnalysisCount(0);
+    }
+  }
+
   if (loading) {
     return (
       <View style={profile_styles.container}>
@@ -172,7 +204,11 @@ export default function ProfileScreen() {
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}>
             <ProfileHeader
-              profile={profile}
+              profile={profile ? { 
+                avatar_url: profile.avatar_url || undefined,
+                full_name: profile.full_name || undefined,
+                username: profile.username || undefined
+              } : null}
               editing={editing}
               fullName={fullName}
               onFullNameChange={setFullName}
@@ -201,34 +237,4 @@ export default function ProfileScreen() {
       </ImageBackground>
     </View>
   );
-}
-
-async function fetchWorkoutCount() {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('No user found');
-    const { count, error } = await supabase
-      .from('workout_logs')
-      .select('*', { count: 'exact', head: true })
-      .eq('profile_id', user.id);
-    if (error) throw error;
-    setWorkoutCount(count || 0);
-  } catch (error) {
-    setWorkoutCount(0);
-  }
-}
-
-async function fetchAnalysisCount() {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('No user found');
-    const { count, error } = await supabase
-      .from('form_analyses')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id);
-    if (error) throw error;
-    setAnalysisCount(count || 0);
-  } catch (error) {
-    setAnalysisCount(0);
-  }
 }
