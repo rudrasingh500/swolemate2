@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { GoogleGenerativeAI } from 'https://esm.sh/@google/generative-ai@0.22.0';
+import { encode as base64Encode } from 'https://deno.land/std@0.177.0/encoding/base64.ts';
 
 const systemPrompt = `You are a personal trainer analyzing exercise form in the user's video. Focus solely on observable movements and positions shown in the video, without adding any information beyond what is directly visible. If you cannot clearly see an aspect of form, acknowledge the limitation rather than making assumptions. Provide time-stamped feedback on specific form issues visible in the video, with clear corrections based only on what you can observe. If no video is present or video fails to load, clearly state that you cannot provide form analysis without visual input.`;
 
@@ -77,6 +78,23 @@ serve(async (req) => {
     });
   }
 
+  // Only allow POST requests for the actual analysis
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ 
+        error: 'Method not allowed. Only POST requests are supported.',
+        allowedMethods: ['POST', 'OPTIONS']
+      }),
+      {
+        status: 405,
+        headers: {
+          ...corsHeaders,
+          'Allow': 'POST, OPTIONS'
+        }
+      }
+    );
+  }
+
   try {
     // Log environment variables (without revealing full values)
     console.log('Environment check:');
@@ -124,6 +142,67 @@ serve(async (req) => {
     
     const supabaseClient = createClient(supabaseUrl, supabaseKey);
     
+    // ====== RATE LIMITING CHECK ======
+    console.log('Checking rate limits for user:', userId);
+    try {
+      const { data: rateLimitResult, error: rateLimitError } = await supabaseClient
+        .rpc('check_form_analysis_rate_limit', {
+          p_user_id: userId,
+          p_max_requests: 3,
+          p_window_hours: 24
+        });
+      
+      if (rateLimitError) {
+        console.error('Rate limit check error:', rateLimitError);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Rate limit check failed',
+            details: rateLimitError.message 
+          }),
+          { status: 500, headers: corsHeaders }
+        );
+      }
+      
+      console.log('Rate limit result:', rateLimitResult);
+      
+      // Check if request is allowed
+      if (!rateLimitResult.allowed) {
+        console.log('Rate limit exceeded for user:', userId);
+        return new Response(
+          JSON.stringify({ 
+            error: 'RATE_LIMIT_EXCEEDED',
+            message: rateLimitResult.message,
+            requests_remaining: rateLimitResult.requests_remaining,
+            reset_time: rateLimitResult.reset_time,
+            window_start: rateLimitResult.window_start
+          }),
+          { 
+            status: 429, // Too Many Requests
+            headers: {
+              ...corsHeaders,
+              'X-RateLimit-Limit': '3',
+              'X-RateLimit-Remaining': '0',
+              'X-RateLimit-Reset': new Date(rateLimitResult.reset_time).getTime().toString(),
+              'Retry-After': Math.ceil((new Date(rateLimitResult.reset_time).getTime() - Date.now()) / 1000).toString()
+            }
+          }
+        );
+      }
+      
+      console.log(`Rate limit check passed. Remaining requests: ${rateLimitResult.requests_remaining}`);
+      
+    } catch (rateLimitException) {
+      console.error('Rate limit check exception:', rateLimitException);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit system error',
+          details: 'Unable to verify rate limits at this time'
+        }),
+        { status: 500, headers: corsHeaders }
+      );
+    }
+    // ====== END RATE LIMITING CHECK ======
+
     // Get video file from storage
     console.log(`Downloading video from ${bucketName}/${videoPath}...`);
     try {
@@ -136,10 +215,7 @@ serve(async (req) => {
         console.error('Error downloading video:', fileError);
         return new Response(
           JSON.stringify({ 
-            error: `Failed to download video: ${fileError.message}`,
-            details: fileError,
-            path: videoPath,
-            bucket: bucketName
+            error: 'Failed to download video file'
           }),
           { status: 500, headers: corsHeaders }
         );
@@ -255,8 +331,7 @@ serve(async (req) => {
           console.error('Gemini API error:', geminiError);
           return new Response(
             JSON.stringify({ 
-              error: 'Error analyzing video with AI', 
-              details: String(geminiError)
+              error: 'Error analyzing video with AI'
             }),
             { status: 500, headers: corsHeaders }
           );
@@ -265,8 +340,7 @@ serve(async (req) => {
         console.error('Error creating Gemini model:', modelError);
         return new Response(
           JSON.stringify({ 
-            error: 'Error initializing AI model', 
-            details: String(modelError)
+            error: 'Error initializing AI model'
           }),
           { status: 500, headers: corsHeaders }
         );
@@ -275,8 +349,7 @@ serve(async (req) => {
       console.error('Storage operation error:', storageError);
       return new Response(
         JSON.stringify({ 
-          error: 'Error accessing storage', 
-          details: String(storageError)
+          error: 'Error accessing storage'
         }),
         { status: 500, headers: corsHeaders }
       );
@@ -285,9 +358,7 @@ serve(async (req) => {
     console.error('Error in edge function:', error);
     return new Response(
       JSON.stringify({ 
-        error: 'Server error', 
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
-        stack: error instanceof Error ? error.stack : undefined
+        error: 'Internal server error'
       }),
       { status: 500, headers: corsHeaders }
     );
@@ -300,11 +371,7 @@ async function blobToBase64(blob: Blob): Promise<string> {
     console.log('Converting blob to base64, size:', blob.size, 'type:', blob.type);
     const buffer = await blob.arrayBuffer();
     const uint8Array = new Uint8Array(buffer);
-    let binary = '';
-    for (let i = 0; i < uint8Array.length; i++) {
-      binary += String.fromCharCode(uint8Array[i]);
-    }
-    const result = btoa(binary);
+    const result = base64Encode(uint8Array);
     console.log('Base64 conversion complete, length:', result.length);
     return result;
   } catch (error) {

@@ -12,6 +12,7 @@ import RecentEvaluation from '@/components/analysis/RecentEvaluation';
 import PastEvaluationsList from '@/components/analysis/PastEvaluationsList';
 import VideoCapture from '@/components/analysis/VideoCapture';
 import { Video as CompressorVideo, Image as CompressorImage } from 'react-native-compressor';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Type definitions for the analysis API response
 interface EvaluationIssue {
@@ -81,6 +82,8 @@ const formatDate = (dateString: string) => {
   }
 };
 
+const RATE_LIMIT_STORAGE_KEY = 'formAnalysisRateLimitInfo';
+
 export default function FormAnalysisScreen() {
   const { user } = useAuth();
   const [videoUri, setVideoUri] = useState<string | null>(null);
@@ -90,15 +93,85 @@ export default function FormAnalysisScreen() {
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [analysisProgress, setAnalysisProgress] = useState<{
+    step: 'idle' | 'uploading' | 'compressing' | 'analyzing' | 'processing';
+    message: string;
+    progress?: number;
+  }>({ step: 'idle', message: '' });
+  const [rateLimitInfo, setRateLimitInfo] = useState<{
+    isLimited: boolean;
+    message?: string;
+    resetTime?: string;
+    resetTimestamp?: number;
+    requestsRemaining?: number;
+  }>({ isLimited: false });
 
-  // Load past evaluations when user changes
+  // Load persisted rate limit state and past evaluations
   useEffect(() => {
     if (user) {
+      loadPersistedRateLimitState();
       loadPastEvaluations();
     } else {
       setIsLoading(false);
     }
   }, [user]);
+
+  const loadPersistedRateLimitState = async () => {
+    try {
+      let storedStateJson;
+      if (Platform.OS === 'web') {
+        storedStateJson = localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
+      } else {
+        storedStateJson = await AsyncStorage.getItem(RATE_LIMIT_STORAGE_KEY);
+      }
+
+      if (storedStateJson) {
+        const storedState = JSON.parse(storedStateJson);
+        if (storedState.isLimited && storedState.resetTimestamp) {
+          if (Date.now() < storedState.resetTimestamp) {
+            // Rate limit is still active
+            setRateLimitInfo({
+              isLimited: true,
+              message: storedState.message,
+              resetTime: new Date(storedState.resetTimestamp).toLocaleString(),
+              resetTimestamp: storedState.resetTimestamp
+            });
+          } else {
+            // Rate limit has expired, clear it
+            clearPersistedRateLimitState();
+            setRateLimitInfo({ isLimited: false });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load persisted rate limit state:', error);
+    }
+  };
+
+  const savePersistedRateLimitState = async (info: typeof rateLimitInfo) => {
+    try {
+      const stateToSave = JSON.stringify(info);
+      if (Platform.OS === 'web') {
+        localStorage.setItem(RATE_LIMIT_STORAGE_KEY, stateToSave);
+      } else {
+        await AsyncStorage.setItem(RATE_LIMIT_STORAGE_KEY, stateToSave);
+      }
+    } catch (error) {
+      console.error('Failed to save rate limit state:', error);
+    }
+  };
+
+  const clearPersistedRateLimitState = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        localStorage.removeItem(RATE_LIMIT_STORAGE_KEY);
+      } else {
+        await AsyncStorage.removeItem(RATE_LIMIT_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error('Failed to clear rate limit state:', error);
+    }
+  };
 
   // Load past evaluations from Supabase
   const loadPastEvaluations = async () => {
@@ -210,6 +283,7 @@ export default function FormAnalysisScreen() {
     }
 
     try {
+      setAnalysisProgress({ step: 'uploading', message: 'Preparing video...' });
       setIsUploading(true);
 
       // Different approaches for web vs native
@@ -219,6 +293,8 @@ export default function FormAnalysisScreen() {
         let fileBlob: Blob;
         let mimeType = 'video/mp4';
         let fileExtension = 'mp4';
+        
+        setAnalysisProgress({ step: 'uploading', message: 'Processing video file...' });
         
         // If the URI is a base64 string
         if (uri.startsWith('data:')) {
@@ -253,6 +329,8 @@ export default function FormAnalysisScreen() {
         // Generate file path with MP4 extension to ensure better compatibility
         const filePath = `${user.id}/${Date.now()}.mp4`;
         
+        setAnalysisProgress({ step: 'uploading', message: 'Uploading to server...' });
+        
         // Upload directly as blob
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('form_videos')
@@ -263,11 +341,13 @@ export default function FormAnalysisScreen() {
         if (uploadError) {
           Alert.alert('Error', 'Failed to upload video: ' + uploadError.message);
           setIsUploading(false);
+          setAnalysisProgress({ step: 'idle', message: '' });
           return;
         }
         
         setIsUploading(false);
         setIsAnalyzing(true);
+        setAnalysisProgress({ step: 'analyzing', message: 'AI analyzing your form...' });
         
         // Call edge function to analyze
         await processVideoWithEdgeFunction(filePath, user.id);
@@ -279,14 +359,13 @@ export default function FormAnalysisScreen() {
         if (!fileInfo.exists) {
           Alert.alert('Error', 'Selected video file does not exist');
           setIsUploading(false);
+          setAnalysisProgress({ step: 'idle', message: '' });
           return;
         }
-
-        // Show a progress message
-        setIsUploading(true);
         
         try {
           // 1. Compress and convert the video to MP4
+          setAnalysisProgress({ step: 'compressing', message: 'Compressing video for analysis...' });
           console.log('Compressing video...');
           const compressedUri = await CompressorVideo.compress(
             uri,
@@ -298,6 +377,11 @@ export default function FormAnalysisScreen() {
             },
             (progress) => {
               console.log(`Compression progress: ${Math.round(progress * 100)}%`);
+              setAnalysisProgress({ 
+                step: 'compressing', 
+                message: 'Compressing video...', 
+                progress: Math.round(progress * 100) 
+              });
             }
           );
           
@@ -321,6 +405,7 @@ export default function FormAnalysisScreen() {
           const mimeType = 'video/mp4';
           
           // Read the compressed file as base64
+          setAnalysisProgress({ step: 'uploading', message: 'Preparing upload...' });
           console.log('Reading compressed file as base64...');
           const base64 = await FileSystem.readAsStringAsync(compressedUri, {
             encoding: FileSystem.EncodingType.Base64,
@@ -334,6 +419,7 @@ export default function FormAnalysisScreen() {
           
           const decoded = decode(base64);
           
+          setAnalysisProgress({ step: 'uploading', message: 'Uploading to server...' });
           console.log('Starting upload to Supabase...');
           const { data: uploadData, error: uploadError } = await supabase.storage
             .from('form_videos')
@@ -374,6 +460,7 @@ export default function FormAnalysisScreen() {
           
           setIsUploading(false);
           setIsAnalyzing(true);
+          setAnalysisProgress({ step: 'analyzing', message: 'AI analyzing your form...' });
           
           // Call edge function to analyze
           await processVideoWithEdgeFunction(filePath, user.id);
@@ -383,18 +470,22 @@ export default function FormAnalysisScreen() {
           Alert.alert('Error', 'Failed to process video: ' + (error instanceof Error ? error.message : String(error)));
           setIsUploading(false);
           setIsAnalyzing(false);
+          setAnalysisProgress({ step: 'idle', message: '' });
         }
       }
     } catch (error) {
       Alert.alert('Error', 'An unexpected error occurred: ' + (error instanceof Error ? error.message : String(error)));
       setIsUploading(false);
       setIsAnalyzing(false);
+      setAnalysisProgress({ step: 'idle', message: '' });
     }
   };
   
   // Helper function to process video with edge function
   const processVideoWithEdgeFunction = async (filePath: string, userId: string) => {
     try {
+      setAnalysisProgress({ step: 'analyzing', message: 'Sending to AI analysis...' });
+      
       const { data, error } = await supabase.functions.invoke('analyze-form', {
         body: {
           videoPath: filePath,
@@ -404,12 +495,61 @@ export default function FormAnalysisScreen() {
       });
 
       if (error) {
+        // Check if this is a rate limit error
+        if (error.message?.includes('RATE_LIMIT_EXCEEDED') || error.context?.status === 429) {
+          console.log('Rate limit exceeded:', error);
+          
+          let rateLimitMessage = 'You have reached the limit of 3 video analyses per 24 hours.';
+          let resetTime = null;
+          let resetTimestamp = null;
+          
+          try {
+            if (error.context?.body) {
+              const errorBody = typeof error.context.body === 'string' 
+                ? JSON.parse(error.context.body) 
+                : error.context.body;
+              
+              if (errorBody.message) rateLimitMessage = errorBody.message;
+              if (errorBody.reset_time) {
+                const resetDate = new Date(errorBody.reset_time);
+                resetTime = resetDate.toLocaleString();
+                resetTimestamp = resetDate.getTime();
+              }
+            }
+          } catch (parseError) {
+            console.log('Could not parse rate limit details:', parseError);
+          }
+          
+          const newRateLimitInfo = {
+            isLimited: true,
+            message: rateLimitMessage,
+            resetTime: resetTime || undefined,
+            resetTimestamp: resetTimestamp || undefined,
+          };
+          setRateLimitInfo(newRateLimitInfo);
+          savePersistedRateLimitState(newRateLimitInfo); // Save to storage
+          
+          Alert.alert(
+            'Rate Limit Reached', 
+            `${rateLimitMessage}${resetTime ? `\n\nYou can try again after: ${resetTime}` : ''}`,
+            [{ text: 'OK' }]
+          );
+          setIsAnalyzing(false);
+          setAnalysisProgress({ step: 'idle', message: '' });
+          return false;
+        }
+        
         Alert.alert('Error', 'Failed to analyze video: ' + error.message);
         setIsAnalyzing(false);
+        setAnalysisProgress({ step: 'idle', message: '' });
         return false;
       }
 
-      setIsAnalyzing(false);
+      setAnalysisProgress({ step: 'processing', message: 'Processing analysis results...' });
+
+      // Reset rate limit info on successful request
+      setRateLimitInfo({ isLimited: false });
+      clearPersistedRateLimitState(); // Clear from storage
 
       // Process the analysis data
       if (data) {
@@ -432,6 +572,8 @@ export default function FormAnalysisScreen() {
             }
           } catch (parseError) {
             Alert.alert('Error', 'Failed to parse analysis results: ' + String(parseError));
+            setIsAnalyzing(false);
+            setAnalysisProgress({ step: 'idle', message: '' });
             return false;
           }
         } else if (data.analysis && typeof data.analysis === 'object' && data.analysis.exercise) {
@@ -439,8 +581,12 @@ export default function FormAnalysisScreen() {
           analysisData = data.analysis as AnalysisData;
         } else {
           Alert.alert('Error', 'Analysis results are not in the expected format');
+          setIsAnalyzing(false);
+          setAnalysisProgress({ step: 'idle', message: '' });
           return false;
         }
+        
+        setAnalysisProgress({ step: 'processing', message: 'Saving results...' });
         
         // Get video URL for the uploaded file
         let videoUrl = undefined;
@@ -490,16 +636,21 @@ export default function FormAnalysisScreen() {
 
         // Don't manually update the state, instead reload from the database
         // to ensure we're displaying what was actually saved
+        setIsAnalyzing(false);
+        setAnalysisProgress({ step: 'idle', message: '' });
         loadPastEvaluations();
         
         return true;
       } else {
         Alert.alert('Error', 'Analysis results are not in the expected format');
+        setIsAnalyzing(false);
+        setAnalysisProgress({ step: 'idle', message: '' });
         return false;
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to process with edge function: ' + (error instanceof Error ? error.message : String(error)));
       setIsAnalyzing(false);
+      setAnalysisProgress({ step: 'idle', message: '' });
       return false;
     }
   };
@@ -702,33 +853,127 @@ export default function FormAnalysisScreen() {
             <View style={analysis_styles.topSection}>
               <Text h2 style={analysis_styles.title}>Form Analysis</Text>
               
-              {(isUploading || isAnalyzing) ? (
+              {rateLimitInfo.isLimited && (
+                <View style={{
+                  backgroundColor: '#e74c3c',
+                  padding: 15,
+                  borderRadius: 10,
+                  marginBottom: 20,
+                  opacity: 0.9
+                }}>
+                  <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold', textAlign: 'center' }}>
+                    Rate Limit Reached
+                  </Text>
+                  <Text style={{ color: 'white', fontSize: 14, textAlign: 'center', marginTop: 5 }}>
+                    {rateLimitInfo.message || 'You have reached the limit of 3 video analyses per 24 hours.'}
+                  </Text>
+                  {rateLimitInfo.resetTime && (
+                    <Text style={{ color: 'white', fontSize: 12, textAlign: 'center', marginTop: 5, opacity: 0.8 }}>
+                      Try again after: {rateLimitInfo.resetTime}
+                    </Text>
+                  )}
+                </View>
+              )}
+              
+              {analysisProgress.step !== 'idle' ? (
                 <View style={analysis_styles.loadingContainer}>
                   <ActivityIndicator size="large" color="#e74c3c" />
                   <Text style={analysis_styles.loadingText}>
-                    {isUploading ? 'Uploading video...' : 'Analyzing form...'}
+                    {analysisProgress.message}
+                  </Text>
+                  {analysisProgress.progress && (
+                    <View style={{
+                      width: '80%',
+                      height: 6,
+                      backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                      borderRadius: 3,
+                      marginTop: 10,
+                      overflow: 'hidden'
+                    }}>
+                      <View style={{
+                        width: `${analysisProgress.progress}%`,
+                        height: '100%',
+                        backgroundColor: '#e74c3c',
+                        borderRadius: 3
+                      }} />
+                    </View>
+                  )}
+                  <Text style={{
+                    color: 'white',
+                    fontSize: 12,
+                    textAlign: 'center',
+                    marginTop: 10,
+                    opacity: 0.8
+                  }}>
+                    You can view your past analyses below while we process this video
                   </Text>
                 </View>
               ) : (
-                <VideoCapture onVideoSelected={handleVideoSelected} />
+                <VideoCapture 
+                  onVideoSelected={handleVideoSelected} 
+                  disabled={rateLimitInfo.isLimited}
+                />
               )}
               
-              {recentEvaluation && !isAnalyzing && (
-                <RecentEvaluation 
-                  evaluation={recentEvaluation} 
-                  onPress={() => handleAnalysisPress(recentEvaluation)} 
-                />
+              {/* Recent Evaluation Section - show loading state when analyzing, otherwise show latest */}
+              {analysisProgress.step !== 'idle' ? (
+                <View style={{
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  padding: 20,
+                  borderRadius: 15,
+                  marginTop: 20,
+                  borderWidth: 2,
+                  borderColor: '#e74c3c',
+                  borderStyle: 'dashed'
+                }}>
+                  <Text style={{ 
+                    color: 'white', 
+                    fontSize: 18, 
+                    fontWeight: 'bold', 
+                    textAlign: 'center',
+                    marginBottom: 10 
+                  }}>
+                    🔄 Analysis in Progress
+                  </Text>
+                  <Text style={{ 
+                    color: 'white', 
+                    fontSize: 14, 
+                    textAlign: 'center',
+                    opacity: 0.8 
+                  }}>
+                    Your new form analysis will appear here once complete
+                  </Text>
+                  <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: 10
+                  }}>
+                    <ActivityIndicator size="small" color="#e74c3c" style={{ marginRight: 8 }} />
+                    <Text style={{ color: '#e74c3c', fontSize: 12 }}>
+                      {analysisProgress.message}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                recentEvaluation && (
+                  <RecentEvaluation 
+                    evaluation={recentEvaluation} 
+                    onPress={() => handleAnalysisPress(recentEvaluation)} 
+                  />
+                )
               )}
             </View>
             
-            {!isAnalyzing && pastEvaluations.length > 0 && (
-            <PastEvaluationsList 
-              evaluations={pastEvaluations} 
-              onPress={handleAnalysisPress} 
-            />
+            {/* Past Evaluations - Always visible */}
+            {pastEvaluations.length > 0 && (
+              <PastEvaluationsList 
+                evaluations={pastEvaluations} 
+                onPress={handleAnalysisPress} 
+              />
             )}
             
-            {!isAnalyzing && pastEvaluations.length === 0 && !recentEvaluation && (
+            {pastEvaluations.length === 0 && !recentEvaluation && analysisProgress.step === 'idle' && (
               <View style={{
                 padding: 20,
                 alignItems: 'center',

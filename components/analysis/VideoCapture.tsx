@@ -7,12 +7,15 @@ import analysis_styles from '@/styles/form-analysis_style';
 
 interface VideoCaptureProps {
   onVideoSelected: (uri: string) => void;
+  disabled?: boolean;
 }
 
-export default function VideoCapture({ onVideoSelected }: VideoCaptureProps) {
+export default function VideoCapture({ onVideoSelected, disabled = false }: VideoCaptureProps) {
   const [videoUri, setVideoUri] = useState<string | null>(null);
 
   async function startRecording() {
+    if (disabled) return;
+    
     try {
       const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
       if (permissionResult.granted === false) {
@@ -39,6 +42,8 @@ export default function VideoCapture({ onVideoSelected }: VideoCaptureProps) {
   }
 
   async function pickVideo() {
+    if (disabled) return;
+    
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (permissionResult.granted === false) {
@@ -70,16 +75,24 @@ export default function VideoCapture({ onVideoSelected }: VideoCaptureProps) {
         title="Start Form Analysis"
         icon={<Ionicons name="videocam" size={24} color="white" style={analysis_styles.buttonIcon} />}
         containerStyle={analysis_styles.mainButtonContainer}
-        buttonStyle={analysis_styles.mainButton}
+        buttonStyle={[
+          analysis_styles.mainButton,
+          disabled && { backgroundColor: '#666', opacity: 0.5 }
+        ]}
         onPress={startRecording}
+        disabled={disabled}
       />
       <Text style={analysis_styles.uploadText}>or</Text>
       <Button
         title="Upload Video"
         type="clear"
-        titleStyle={analysis_styles.uploadButtonText}
-        icon={<Ionicons name="cloud-upload" size={20} color="#e0e0e0" style={analysis_styles.buttonIcon} />}
+        titleStyle={[
+          analysis_styles.uploadButtonText,
+          disabled && { color: '#888', opacity: 0.5 }
+        ]}
+        icon={<Ionicons name="cloud-upload" size={20} color={disabled ? "#888" : "#e0e0e0"} style={analysis_styles.buttonIcon} />}
         onPress={pickVideo}
+        disabled={disabled}
       />
     </View>
   );
