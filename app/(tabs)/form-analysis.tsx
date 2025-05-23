@@ -362,28 +362,58 @@ export default function FormAnalysisScreen() {
           setAnalysisProgress({ step: 'idle', message: '' });
           return;
         }
+
+        // Check original file size (e.g., limit to 100MB before attempting compression)
+        const MAX_ORIGINAL_VIDEO_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
+        if (fileInfo.size && fileInfo.size > MAX_ORIGINAL_VIDEO_SIZE_BYTES) {
+          Alert.alert(
+            'Video Too Large',
+            `The selected video is ${(fileInfo.size / (1024*1024)).toFixed(1)}MB, which may be too large to process. Please try a shorter or smaller video (under 100MB).`,
+            [{ text: 'OK' }]
+          );
+          setIsUploading(false);
+          setAnalysisProgress({ step: 'idle', message: '' });
+          return;
+        }
         
         try {
           // 1. Compress and convert the video to MP4
           setAnalysisProgress({ step: 'compressing', message: 'Compressing video for analysis...' });
-          console.log('Compressing video...');
-          const compressedUri = await CompressorVideo.compress(
-            uri,
-            {
-              compressionMethod: 'auto',
-              maxSize: 10 * 1024 * 1024, // Max 10MB
-              minimumFileSizeForCompress: 0,
-              progressDivider: 10
-            },
-            (progress) => {
-              console.log(`Compression progress: ${Math.round(progress * 100)}%`);
-              setAnalysisProgress({ 
-                step: 'compressing', 
-                message: 'Compressing video...', 
-                progress: Math.round(progress * 100) 
-              });
-            }
+          Alert.alert(
+            'Processing Video',
+            'Compressing your video. This may take a few moments for larger files...'
           );
+          console.log('Compressing video...');
+          let compressedUri: string | undefined;
+          try {
+            compressedUri = await CompressorVideo.compress(
+              uri,
+              {
+                compressionMethod: 'auto',
+                maxSize: 10 * 1024 * 1024, // Max 10MB for the *output*
+                minimumFileSizeForCompress: 0, // Attempt to compress all files
+                progressDivider: 10
+              },
+              (progress) => {
+                console.log(`Compression progress: ${Math.round(progress * 100)}%`);
+                setAnalysisProgress({ 
+                  step: 'compressing', 
+                  message: 'Compressing video...', 
+                  progress: Math.round(progress * 100) 
+                });
+              }
+            );
+          } catch (compressionError) {
+            console.error('Video compression failed:', compressionError);
+            Alert.alert(
+              'Compression Error',
+              'Failed to compress the video. It might be too large or in an unsupported format. Please try a different video.' + (compressionError instanceof Error ? `\nDetails: ${compressionError.message}` : '')
+            );
+            setIsUploading(false);
+            setIsAnalyzing(false);
+            setAnalysisProgress({ step: 'idle', message: '' });
+            return;
+          }
           
           console.log('Video compressed successfully');
           console.log('Original URI:', uri);
@@ -875,45 +905,11 @@ export default function FormAnalysisScreen() {
                 </View>
               )}
               
-              {analysisProgress.step !== 'idle' ? (
-                <View style={analysis_styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#e74c3c" />
-                  <Text style={analysis_styles.loadingText}>
-                    {analysisProgress.message}
-                  </Text>
-                  {analysisProgress.progress && (
-                    <View style={{
-                      width: '80%',
-                      height: 6,
-                      backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                      borderRadius: 3,
-                      marginTop: 10,
-                      overflow: 'hidden'
-                    }}>
-                      <View style={{
-                        width: `${analysisProgress.progress}%`,
-                        height: '100%',
-                        backgroundColor: '#e74c3c',
-                        borderRadius: 3
-                      }} />
-                    </View>
-                  )}
-                  <Text style={{
-                    color: 'white',
-                    fontSize: 12,
-                    textAlign: 'center',
-                    marginTop: 10,
-                    opacity: 0.8
-                  }}>
-                    You can view your past analyses below while we process this video
-                  </Text>
-                </View>
-              ) : (
-                <VideoCapture 
-                  onVideoSelected={handleVideoSelected} 
-                  disabled={rateLimitInfo.isLimited}
-                />
-              )}
+              {/* VideoCapture or Top Loading Indicator Section */}
+              <VideoCapture 
+                onVideoSelected={handleVideoSelected} 
+                disabled={rateLimitInfo.isLimited || analysisProgress.step !== 'idle'}
+              />
               
               {/* Recent Evaluation Section - show loading state when analyzing, otherwise show latest */}
               {analysisProgress.step !== 'idle' ? (
