@@ -1,115 +1,117 @@
-import React, { useState, useEffect } from 'react';
+/*
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Modal,
+  ScrollView,
   Animated,
+  Easing,
 } from 'react-native';
 import { useAchievements, GameAchievement } from '@/hooks/useAchievements';
 import AchievementGrid from './AchievementGrid';
 import AchievementDetails from './AchievementDetails';
+import { Button } from '@rneui/themed'; // For the reset button
 
 // Sample achievement data with locked/mysterious state
 const SAMPLE_ACHIEVEMENTS: GameAchievement[] = [
   {
     id: '1',
-    icon: '🏃',
+    icon: '🔥',
     title: 'First Steps',
-    description: 'Complete your first workout session',
+    description: 'Complete your first workout session.',
+    isEarned: false,
+    isRevealed: false,
     progress: 0,
     target: 1,
     earnedDate: null,
-    isEarned: false,
-    isRevealed: false,
+    criteria: { type: 'workout_completed', count: 1 },
   },
   {
     id: '2',
-    icon: '🔥',
-    title: 'Streak Master',
-    description: 'Complete workouts 7 days in a row',
-    progress: 0,
-    target: 7,
-    earnedDate: null,
+    icon: '🚀',
+    title: 'Dedication',
+    description: 'Complete 5 workout sessions.',
     isEarned: false,
     isRevealed: false,
+    progress: 0,
+    target: 5,
+    earnedDate: null,
+    criteria: { type: 'workout_completed', count: 5 },
   },
   {
     id: '3',
-    icon: '💪',
-    title: 'Heavy Lifter',
-    description: 'Lift a total of 1000 lbs across all exercises',
-    progress: 0,
-    target: 1000,
-    earnedDate: null,
+    icon: '⭐',
+    title: 'Streak Master',
+    description: 'Maintain a 7-day workout streak.',
     isEarned: false,
     isRevealed: false,
+    progress: 0,
+    target: 7,
+    earnedDate: null,
+    criteria: { type: 'workout_streak', days: 7 },
   },
   {
     id: '4',
-    icon: '⭐',
+    icon: '🎯',
     title: 'Form Master',
-    description: 'Achieve perfect form in 5 different exercises',
-    progress: 0,
-    target: 5,
-    earnedDate: null,
+    description: 'Achieve a good form score 3 times.',
     isEarned: false,
     isRevealed: false,
+    progress: 0,
+    target: 3,
+    earnedDate: null,
+    criteria: { type: 'form_score_achieved', minScore: 80, count: 3 },
   },
   {
     id: '5',
-    icon: '🏆',
-    title: 'Dedication',
-    description: 'Complete 30 workouts',
-    progress: 0,
-    target: 30,
-    earnedDate: null,
+    icon: '🏋️',
+    title: 'Heavy Lifter',
+    description: 'Lift a total of 1000kg.',
     isEarned: false,
     isRevealed: false,
+    progress: 0,
+    target: 1000,
+    earnedDate: null,
+    criteria: { type: 'total_weight_lifted', amount: 1000 },
   },
   {
     id: '6',
-    icon: '🌟',
-    title: 'Variety Seeker',
-    description: 'Try 10 different exercises',
-    progress: 0,
-    target: 10,
-    earnedDate: null,
+    icon: '🏆',
+    title: 'Champion',
+    description: 'Unlock all other achievements.',
     isEarned: false,
     isRevealed: false,
+    progress: 0,
+    target: 4, // Assuming 4 other base achievements
+    earnedDate: null,
+    criteria: { type: 'all_achievements_unlocked', excludeIds: ['6'] },
   },
   {
     id: '7',
-    icon: '🚀',
-    title: 'Overachiever',
-    description: 'Exceed your target reps by 50% in a single workout',
-    progress: 0,
-    target: 1,
-    earnedDate: null,
+    icon: '💡',
+    title: 'Explorer',
+    description: 'Try 5 different types of exercises.',
     isEarned: false,
     isRevealed: false,
-  },
-  {
-    id: '8',
-    icon: '🔄',
-    title: 'Consistency King',
-    description: 'Complete the same workout 5 times',
     progress: 0,
     target: 5,
     earnedDate: null,
-    isEarned: false,
-    isRevealed: false,
+    criteria: { type: 'exercise_variety', count: 5 },
   },
   {
-    id: '9',
-    icon: '📈',
-    title: 'Progress Tracker',
-    description: 'Log your workouts for 14 consecutive days',
-    progress: 0,
-    target: 14,
-    earnedDate: null,
+    id: '8',
+    icon: '⏳',
+    title: 'Time Lord',
+    description: 'Log 10 hours of workout time.',
     isEarned: false,
     isRevealed: false,
+    progress: 0,
+    target: 600, // in minutes
+    earnedDate: null,
+    criteria: { type: 'total_workout_time', minutes: 600 },
   },
 ];
 
@@ -118,7 +120,7 @@ interface GameAchievementsProps {
   initialAchievements?: GameAchievement[];
   // Callback when an achievement is unlocked
   onAchievementUnlocked?: (achievement: GameAchievement) => void;
-  // Show reset button for testing (default: false)
+  // Show reset button (for demo/testing)
   showReset?: boolean;
 }
 
@@ -127,91 +129,109 @@ const GameAchievements: React.FC<GameAchievementsProps> = ({
   onAchievementUnlocked,
   showReset = false,
 }) => {
-  const { achievements, recentlyUnlocked, resetAllAchievements } =
-    useAchievements(initialAchievements || SAMPLE_ACHIEVEMENTS);
+  const {
+    achievements,
+    unlockAchievement,
+    recentlyUnlocked,
+    clearRecentlyUnlocked,
+    resetAllAchievements,
+  } = useAchievements(initialAchievements || SAMPLE_ACHIEVEMENTS);
 
   const [selectedAchievement, setSelectedAchievement] =
     useState<GameAchievement | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
-  const [unlockNotification, setUnlockNotification] =
+  const [notificationVisible, setNotificationVisible] = useState(false);
+  const [notifiedAchievement, setNotifiedAchievement] =
     useState<GameAchievement | null>(null);
-  const [fadeAnim] = useState(new Animated.Value(0));
+
+  const notificationAnim = useRef(new Animated.Value(0)).current;
 
   // Handle achievement selection
   const handleAchievementPress = (achievement: GameAchievement) => {
     setSelectedAchievement(achievement);
-    setShowDetails(true);
+    // For demo: if a locked achievement is pressed, unlock it
+    if (!achievement.isEarned && onAchievementUnlocked) {
+      unlockAchievement(achievement.id);
+    }
   };
 
   // Close achievement details modal
   const handleCloseDetails = () => {
-    setShowDetails(false);
     setSelectedAchievement(null);
   };
 
   // Show notification when an achievement is unlocked
   useEffect(() => {
-    if (recentlyUnlocked) {
-      setUnlockNotification(recentlyUnlocked);
-
-      // Animate notification in and out
+    if (recentlyUnlocked && recentlyUnlocked.id !== notifiedAchievement?.id) {
+      setNotifiedAchievement(recentlyUnlocked);
+      setNotificationVisible(true);
       Animated.sequence([
-        Animated.timing(fadeAnim, {
+        Animated.timing(notificationAnim, {
           toValue: 1,
           duration: 500,
+          easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
-        Animated.delay(3000),
-        Animated.timing(fadeAnim, {
+        Animated.delay(2000),
+        Animated.timing(notificationAnim, {
           toValue: 0,
           duration: 500,
+          easing: Easing.in(Easing.quad),
           useNativeDriver: true,
         }),
       ]).start(() => {
-        setUnlockNotification(null);
+        setNotificationVisible(false);
+        clearRecentlyUnlocked(); // Clear after animation
+        if (onAchievementUnlocked) {
+          onAchievementUnlocked(recentlyUnlocked);
+        }
       });
-
-      // Notify parent component if callback provided
-      if (onAchievementUnlocked) {
-        onAchievementUnlocked(recentlyUnlocked);
-      }
     }
-  }, [recentlyUnlocked]);
+  }, [recentlyUnlocked, onAchievementUnlocked, clearRecentlyUnlocked, notifiedAchievement, notificationAnim]);
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>Workout Achievements</Text>
-        {showReset && (
-          <TouchableOpacity
-            style={styles.resetButton}
-            onPress={resetAllAchievements}
-          >
-            <Text style={styles.resetButtonText}>Reset</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
+      <Text style={styles.title}>Workout Achievements</Text>
+      {showReset && (
+        <Button
+          title="Reset Achievements (Demo)"
+          onPress={resetAllAchievements}
+          type="outline"
+          buttonStyle={styles.resetButton}
+          titleStyle={styles.resetButtonText}
+        />
+      )}
       <AchievementGrid
-        initialAchievements={achievements}
-        onAchievementUnlocked={onAchievementUnlocked}
+        initialAchievements={achievements} // Pass the hook's achievements
+        onAchievementUnlocked={onAchievementUnlocked} // Pass down the callback
+        onAchievementPress={handleAchievementPress} // Pass down the press handler
       />
-
       <AchievementDetails
         achievement={selectedAchievement}
-        visible={showDetails}
         onClose={handleCloseDetails}
       />
 
       {/* Achievement unlock notification */}
-      {unlockNotification && (
-        <Animated.View style={[styles.notification, { opacity: fadeAnim }]}>
-          <Text style={styles.notificationIcon}>{unlockNotification.icon}</Text>
+      {notificationVisible && notifiedAchievement && (
+        <Animated.View
+          style={[
+            styles.notificationContainer,
+            {
+              transform: [
+                {
+                  translateY: notificationAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-100, 20], // Animate from top
+                  }),
+                },
+              ],
+              opacity: notificationAnim,
+            },
+          ]}
+        >
+          <Text style={styles.notificationTitle}>Achievement Unlocked!</Text>
           <View style={styles.notificationContent}>
-            <Text style={styles.notificationTitle}>Achievement Unlocked!</Text>
-            <Text style={styles.notificationText}>
-              {unlockNotification.title}
-            </Text>
+            <Text style={styles.notificationIcon}>{notifiedAchievement.icon}</Text>
+            <Text style={styles.notificationText}>{notifiedAchievement.title}</Text>
           </View>
         </Animated.View>
       )}
@@ -221,66 +241,61 @@ const GameAchievements: React.FC<GameAchievementsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 10,
-    padding: 15,
-    marginTop: 20,
-    marginHorizontal: 20,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
+    flex: 1,
+    padding: 10,
   },
   title: {
-    color: 'white',
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 15,
   },
   resetButton: {
-    backgroundColor: 'rgba(231, 76, 60, 0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
+    borderColor: '#e74c3c',
+    borderWidth: 1,
+    marginBottom: 15,
+    alignSelf: 'center',
   },
   resetButtonText: {
     color: '#e74c3c',
-    fontSize: 12,
   },
-  notification: {
+  notificationContainer: {
     position: 'absolute',
-    bottom: 20,
+    top: 0, // Adjust as needed, e.g., below a status bar
     left: 20,
     right: 20,
-    backgroundColor: 'rgba(40, 40, 40, 0.95)',
-    borderRadius: 10,
+    backgroundColor: 'rgba(46, 204, 113, 0.9)', // Greenish success color
     padding: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
+    borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowRadius: 5,
     elevation: 5,
-  },
-  notificationIcon: {
-    fontSize: 30,
-    marginRight: 15,
-  },
-  notificationContent: {
-    flex: 1,
+    zIndex: 1000, // Ensure it's on top
   },
   notificationTitle: {
-    color: '#e74c3c',
     fontSize: 16,
     fontWeight: 'bold',
+    color: 'white',
     marginBottom: 5,
+    textAlign: 'center',
+  },
+  notificationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationIcon: {
+    fontSize: 24,
+    marginRight: 10,
   },
   notificationText: {
-    color: 'white',
     fontSize: 14,
+    color: 'white',
   },
 });
 
 export default GameAchievements;
+*/

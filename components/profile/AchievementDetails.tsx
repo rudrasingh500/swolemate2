@@ -1,114 +1,110 @@
+/*
 import React from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity } from 'react-native';
-import { Button } from '@rneui/themed';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import { GameAchievement } from '@/hooks/useAchievements';
 
 interface AchievementDetailsProps {
   achievement: GameAchievement | null;
-  visible: boolean;
   onClose: () => void;
 }
 
 const AchievementDetails: React.FC<AchievementDetailsProps> = ({
   achievement,
-  visible,
   onClose,
 }) => {
   if (!achievement) return null;
 
-  // Determine difficulty level based on target value
-  const getDifficultyLevel = () => {
+  const getDifficulty = (target: number) => {
     if (!achievement) return 'Unknown';
-
-    if (achievement.target <= 1) return 'Easy';
-    if (achievement.target <= 5) return 'Medium';
-    if (achievement.target <= 10) return 'Hard';
-    return 'Legendary';
+    if (target <= 1) return 'Easy';
+    if (target <= 5) return 'Medium';
+    if (target <= 10) return 'Hard';
+    return 'Challenging';
   };
 
-  // Format date for display
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Not yet earned';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
   };
 
   return (
     <Modal
-      visible={visible}
       transparent={true}
-      animationType="fade"
+      visible={!!achievement}
       onRequestClose={onClose}
+      animationType="slide"
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          {achievement.isRevealed ? (
-            <>
-              <Text style={styles.modalIcon}>{achievement.icon}</Text>
-              <Text style={styles.modalTitle}>{achievement.title}</Text>
-              <Text style={styles.modalDescription}>
-                {achievement.description}
-              </Text>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {achievement.isRevealed ? (
+              <>
+                <Text style={styles.modalIcon}>{achievement.icon}</Text>
+                <Text style={styles.modalTitle}>{achievement.title}</Text>
+                <Text style={styles.modalDescription}>
+                  {achievement.description}
+                </Text>
 
-              <View style={styles.detailsContainer}>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Status:</Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Status:</Text>
                   <Text
                     style={[
-                      styles.detailValue,
-                      achievement.isEarned
-                        ? styles.earnedText
-                        : styles.notEarnedText,
+                      styles.infoValue,
+                      achievement.isEarned ? styles.earnedText : styles.lockedText,
                     ]}
                   >
                     {achievement.isEarned ? 'Unlocked' : 'Locked'}
                   </Text>
                 </View>
 
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Difficulty:</Text>
-                  <Text style={styles.detailValue}>{getDifficultyLevel()}</Text>
-                </View>
+                {achievement.isEarned && achievement.earnedDate && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Earned On:</Text>
+                    <Text style={styles.infoValue}>
+                      {formatDate(achievement.earnedDate)}
+                    </Text>
+                  </View>
+                )}
 
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Unlocked:</Text>
-                  <Text style={styles.detailValue}>
-                    {formatDate(achievement.earnedDate)}
-                  </Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Progress:</Text>
-                  <Text style={styles.detailValue}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Progress:</Text>
+                  <Text style={styles.infoValue}>
                     {achievement.progress}/{achievement.target}
                   </Text>
                 </View>
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={styles.modalIcon}>?</Text>
-              <Text style={styles.modalTitle}>Mysterious Achievement</Text>
-              <Text style={styles.modalDescription}>
-                Keep working out to discover this achievement!
-              </Text>
-              <Text style={styles.mysteryHint}>
-                Some achievements are revealed through specific workout
-                activities. Try different exercises and maintain your streak to
-                unlock more achievements!
-              </Text>
-            </>
-          )}
 
-          <Button
-            title="Close"
-            onPress={onClose}
-            buttonStyle={styles.closeButton}
-            titleStyle={styles.closeButtonText}
-          />
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Difficulty:</Text>
+                  <Text style={styles.infoValue}>
+                    {getDifficulty(achievement.target)}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalIcon}>?</Text>
+                <Text style={styles.modalTitle}>Mysterious Achievement</Text>
+                <Text style={styles.modalDescription}>
+                  Keep working out to discover this achievement!
+                </Text>
+                <Text style={styles.hintText}>
+                  Some achievements are revealed through specific workout
+                  milestones or by exploring different features of the app.
+                  Keep pushing your limits to unlock more achievements!
+                </Text>
+              </>
+            )}
+          </ScrollView>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -116,77 +112,85 @@ const AchievementDetails: React.FC<AchievementDetailsProps> = ({
 };
 
 const styles = StyleSheet.create({
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
   },
-  modalContent: {
-    backgroundColor: 'rgba(40, 40, 40, 0.95)',
+  modalContainer: {
+    width: '90%',
+    maxHeight: '80%',
+    backgroundColor: 'rgba(30, 30, 30, 0.95)', // Darker, more translucent
     borderRadius: 15,
-    padding: 25,
-    width: '85%',
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  scrollContent: {
     alignItems: 'center',
+    paddingBottom: 20, // Space for the close button
   },
   modalIcon: {
-    fontSize: 48,
+    fontSize: 50,
+    color: '#e74c3c', // Theme color
     marginBottom: 15,
-    color: 'white',
   },
   modalTitle: {
-    color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    color: 'white',
     textAlign: 'center',
+    marginBottom: 10,
   },
   modalDescription: {
-    color: '#e0e0e0',
     fontSize: 16,
+    color: '#e0e0e0', // Lighter gray
     textAlign: 'center',
     marginBottom: 20,
+    lineHeight: 22,
   },
-  detailsContainer: {
-    width: '100%',
-    marginBottom: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 8,
-    padding: 15,
-  },
-  detailRow: {
+  infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    width: '100%',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
-  detailLabel: {
-    color: '#a0a0a0',
-    fontSize: 14,
-  },
-  detailValue: {
-    color: 'white',
-    fontSize: 14,
+  infoLabel: {
+    fontSize: 15,
+    color: '#b0b0b0', // Medium gray
     fontWeight: '500',
   },
+  infoValue: {
+    fontSize: 15,
+    color: 'white',
+    fontWeight: '600',
+  },
   earnedText: {
-    color: '#e74c3c',
+    color: '#2ecc71', // Green for earned
   },
-  notEarnedText: {
-    color: '#a0a0a0',
+  lockedText: {
+    color: '#e74c3c', // Red for locked
   },
-  mysteryHint: {
-    color: '#a0a0a0',
+  hintText: {
     fontSize: 14,
-    fontStyle: 'italic',
+    color: '#a0a0a0',
     textAlign: 'center',
     marginTop: 10,
-    marginBottom: 20,
+    fontStyle: 'italic',
   },
   closeButton: {
     backgroundColor: '#e74c3c',
+    borderRadius: 10,
     paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 8,
+    paddingHorizontal: 25,
+    marginTop: 20,
+    alignSelf: 'center',
   },
   closeButtonText: {
     color: 'white',
@@ -196,3 +200,4 @@ const styles = StyleSheet.create({
 });
 
 export default AchievementDetails;
+*/

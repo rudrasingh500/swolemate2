@@ -34,18 +34,20 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Perform a test query to check connection
-(async () => {
-  try {
-    // Try to list buckets
-    const { data, error } = await supabase.storage.listBuckets();
-    if (error) {
-      console.error('❌ Supabase connection test failed:', error.message);
-    } else {
-      console.log('✅ Supabase connection test successful!');
-      console.log('Available storage buckets:', data.map(b => b.name));
+// Perform a test query to check connection in development environment
+if (process.env.NODE_ENV === 'development') {
+  (async () => {
+    try {
+      // Try to list buckets
+      const { data, error } = await supabase.storage.listBuckets();
+      if (error) {
+        console.error('❌ Supabase connection test failed:', error.message);
+      } else {
+        console.log('✅ Supabase connection test successful!');
+        console.log('Available storage buckets:', data.map(b => b.name));
+      }
+    } catch (err) {
+      console.error('❌ Supabase initialization error:', err);
     }
-  } catch (err) {
-    console.error('❌ Supabase initialization error:', err);
-  }
-})(); 
+  })();
+}

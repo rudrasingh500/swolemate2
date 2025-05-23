@@ -86,7 +86,7 @@ const profile_styles = StyleSheet.create({
     statLabel: {
       color: '#e0e0e0',
     },
-    achievementsContainer: {
+    /* achievementsContainer: {
       backgroundColor: 'rgba(255, 255, 255, 0.1)',
       borderRadius: 10,
       padding: 15,
@@ -126,7 +126,7 @@ const profile_styles = StyleSheet.create({
       color: '#e0e0e0',
       fontSize: 12,
       textAlign: 'center',
-    },
+    }, */
     signOutButton: {
       margin: 20,
     },
@@ -143,7 +143,7 @@ const profile_styles = StyleSheet.create({
       width: '80%',
       alignItems: 'center',
     },
-    modalIcon: {
+    /* modalIcon: {
       fontSize: 48,
       marginBottom: 15,
     },
@@ -169,7 +169,7 @@ const profile_styles = StyleSheet.create({
       color: '#e0e0e0',
       fontSize: 14,
       marginBottom: 20,
-    },
+    }, */
     modalCloseButton: {
       backgroundColor: '#e74c3c',
       paddingVertical: 12,
@@ -212,7 +212,7 @@ const profile_styles = StyleSheet.create({
     statLabel: {
       color: '#e0e0e0',
     },
-    achievementsContainer: {
+    /* achievementsContainer: {
       backgroundColor: 'rgba(255, 255, 255, 0.1)',
       borderRadius: 10,
       padding: 15,
@@ -252,7 +252,7 @@ const profile_styles = StyleSheet.create({
       color: '#e0e0e0',
       fontSize: 12,
       textAlign: 'center',
-    },
+    }, */
     signOutButton: {
       margin: 20,
     },

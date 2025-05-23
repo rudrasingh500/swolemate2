@@ -54,7 +54,7 @@ export default function TabLayout() {
                 ),
               }}
             />
-            <Tabs.Screen
+            {/* <Tabs.Screen
               name="achievements"
               options={{
                 title: 'Achievements',
@@ -62,7 +62,7 @@ export default function TabLayout() {
                   <TabBarIcon name="trophy" color={color} />
                 ),
               }}
-            />
+            /> */}
             {/* Remove the achievements-detail tab from the tab bar since it should be accessed via navigation from achievements screen */}
             {/* This screen should be defined in a separate file, not in the tab navigation */}
             <Tabs.Screen
