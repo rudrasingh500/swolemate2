@@ -12,9 +12,10 @@ interface CurrentPlanProps {
   weeklyPlan: DailyPlan[];
   currentGoal: string;
   onEditPlan: () => void;
+  onCreateCustomPlan: () => void; // New prop for creating a custom plan
 }
 
-export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: CurrentPlanProps) {
+export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan, onCreateCustomPlan }: CurrentPlanProps) { // Added onCreateCustomPlan
   const [userId, setUserId] = useState<string | null>(null);
   const [expandedExercises, setExpandedExercises] = useState<Record<string, boolean>>({}); // Key will be `${dayIndex}-${exerciseIndex}`
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
@@ -62,16 +63,27 @@ export default function CurrentPlan({ weeklyPlan, currentGoal, onEditPlan }: Cur
       <View style={plan_styles.goalContainer}>
         <View style={plan_styles.goalHeader}>
           <Text h4 style={plan_styles.goalTitle}>Current Goal</Text>
+        </View>
+        <Text style={plan_styles.goalText}>{currentGoal}</Text>
+        <View style={plan_styles.buttonRow}> 
           <Button
             title="Edit Plan"
             type="outline"
-            onPress={onEditPlan}
-            containerStyle={plan_styles.editButton}
+            onPress={onEditPlan} // This now leads to PreDefinedPlans or custom creation choice
+            containerStyle={[plan_styles.editButton, { marginRight: 10 }]} // Added marginRight for spacing
             buttonStyle={plan_styles.editButtonStyle}
             titleStyle={plan_styles.editButtonText}
           />
+          <Button
+            title="New Custom Plan"
+            type="outline"
+            onPress={onCreateCustomPlan} // Button to go to custom plan creation
+            containerStyle={plan_styles.editButton} // Removed marginLeft from here as buttonRow centers them
+            buttonStyle={plan_styles.editButtonStyle}
+            titleStyle={plan_styles.editButtonText}
+            icon={{ name: 'add-circle-outline', type: 'ionicon', size: 18, color: '#e74c3c', style: { marginRight: 5 } }}
+          />
         </View>
-        <Text style={plan_styles.goalText}>{currentGoal}</Text>
       </View>
 
       <ScrollView 

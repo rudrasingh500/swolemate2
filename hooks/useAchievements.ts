@@ -1,3 +1,4 @@
+/*
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Achievement } from '@/types/profile';
@@ -32,12 +33,9 @@ export type AchievementTriggerData = {
 const STORAGE_KEY = 'game_achievements';
 
 export const useAchievements = (initialAchievements?: GameAchievement[]) => {
-  const [achievements, setAchievements] = useState<GameAchievement[]>(
-    initialAchievements || [],
-  );
+  const [achievements, setAchievements] = useState<GameAchievement[]>(initialAchievements || []);
   const [loading, setLoading] = useState(true);
-  const [recentlyUnlocked, setRecentlyUnlocked] =
-    useState<GameAchievement | null>(null);
+  const [recentlyUnlocked, setRecentlyUnlocked] = useState<GameAchievement | null>(null);
 
   // Load achievements from storage on hook initialization
   useEffect(() => {
@@ -199,42 +197,35 @@ export const useAchievements = (initialAchievements?: GameAchievement[]) => {
   // Manually unlock an achievement (for testing or special cases)
   const unlockAchievement = (achievementId: string) => {
     setAchievements((prevAchievements) => {
-      return prevAchievements.map((achievement) => {
+      const updatedAchievements = prevAchievements.map((achievement) => {
         if (achievement.id === achievementId && !achievement.isEarned) {
-          const updatedAchievement = {
+          const unlockedAch = {
             ...achievement,
             isEarned: true,
             isRevealed: true,
-            progress: achievement.target,
+            progress: achievement.target, // Max out progress
             earnedDate: new Date().toISOString(),
           };
-
-          setRecentlyUnlocked(updatedAchievement);
-          return updatedAchievement;
+          setRecentlyUnlocked(unlockedAch); // Set as recently unlocked
+          return unlockedAch;
         }
         return achievement;
       });
+      return updatedAchievements;
     });
   };
 
-  // Clear the recently unlocked achievement
+  // Clear the recently unlocked achievement (e.g., after displaying a notification)
   const clearRecentlyUnlocked = () => {
     setRecentlyUnlocked(null);
   };
 
-  // Reset all achievements (for testing)
+  // Reset all achievements to their initial state (for testing)
   const resetAllAchievements = async () => {
-    const resetData = achievements.map((achievement) => ({
-      ...achievement,
-      isEarned: false,
-      isRevealed: false,
-      progress: 0,
-      earnedDate: null,
-    }));
-
-    setAchievements(resetData);
-    setRecentlyUnlocked(null);
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(resetData));
+    if (initialAchievements) {
+      setAchievements(initialAchievements);
+      await AsyncStorage.removeItem(STORAGE_KEY); // Clear from storage too
+    }
   };
 
   return {
@@ -247,5 +238,8 @@ export const useAchievements = (initialAchievements?: GameAchievement[]) => {
     unlockAchievement,
     clearRecentlyUnlocked,
     resetAllAchievements,
+    loadAchievements, // Expose for manual reload if needed
+    saveAchievements, // Expose for manual save if needed
   };
 };
+*/

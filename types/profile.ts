@@ -1,3 +1,4 @@
+/*
 export type Achievement = {
   id: string;
   icon: string;
@@ -8,3 +9,4 @@ export type Achievement = {
   earnedDate: string | null;
   isEarned: boolean;
 };
+*/

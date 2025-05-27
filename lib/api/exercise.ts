@@ -37,8 +37,8 @@ export async function fetchExercises(options: ExerciseApiOptions = {}) {
   const requestOptions = {
     method: 'GET',
     headers: {
-      'x-rapidapi-key': 'd2cb309ed3mshb11140497e8172ep126b01jsn9411b860eb85',
-      'x-rapidapi-host': 'exercisedb.p.rapidapi.com'
+      'x-rapidapi-key': process.env.EXPO_PUBLIC_EXERCISEDB_API_KEY!,
+      'x-rapidapi-host': process.env.EXPO_PUBLIC_EXERCISEDB_URL!,
     }
   };
 
@@ -54,81 +54,104 @@ export async function fetchExercises(options: ExerciseApiOptions = {}) {
     // If searching by name, prioritize matches by relevance
     if (name && name.trim() !== '' && Array.isArray(data) && data.length > 0) {
       const searchTerm = name.trim().toLowerCase();
-      
-      // 1. Look for exact match (case insensitive)
-      // This includes handling singular/plural variations
-      const exactMatches = data.filter(exercise => {
-        const exerciseName = exercise.name.toLowerCase();
-        return (
-          exerciseName === searchTerm ||
-          exerciseName === searchTerm + 's' ||
-          exerciseName + 's' === searchTerm
-        );
-      });
-      
-      // If exact matches found, return them as the only results
-      if (exactMatches.length > 0) {
-        return exactMatches;
-      }
-      
-      // 2. Look for exact word count matches
-      // This handles cases where we want "russian twist" but not "assisted motion russian twist"
-      const exactWordCountMatches = data.filter(exercise => {
-        const exerciseName = exercise.name.toLowerCase();
-        const exerciseNameWords = exerciseName.split(' ');
-        const searchTermWords = searchTerm.split(' ');
-        
-        // Check if the exercise name has the same number of words as the search term
-        // AND the exercise name is exactly the search term
-        return exerciseNameWords.length === searchTermWords.length && 
-               exerciseName === searchTerm;
-      });
-      
-      if (exactWordCountMatches.length > 0) {
-        return exactWordCountMatches;
-      }
-      
-      // 3. Look for exercises where the name is exactly the search term
-      // This is a stricter version of the previous check that ensures exact name matching
-      const strictNameMatches = data.filter(exercise => {
-        return exercise.name.toLowerCase() === searchTerm;
-      });
-      
-      if (strictNameMatches.length > 0) {
-        return strictNameMatches;
-      }
-      
-      // 4. Look for basic exercise name that matches the search term exactly as a whole phrase
-      // This handles cases where the search is for a basic exercise (e.g., "russian twist")
-      // but the API returns variations (e.g., "assisted motion russian twist")
-      const basicNameMatches = data.filter(exercise => {
-        const exerciseName = exercise.name.toLowerCase();
-        const searchTermWords = searchTerm.split(' ');
-        
-        // Only consider matches where all words from the search term appear together in sequence
-        if (searchTermWords.length > 1) {
-          return (
-            // Exact match at the beginning of the name
-            exerciseName.startsWith(searchTerm + ' ') ||
-            // Exact match at the end of the name
-            exerciseName.endsWith(' ' + searchTerm) ||
-            // Exact match as a whole phrase in the middle
-            exerciseName.includes(' ' + searchTerm + ' ')
-          );
-        } else {
-          // For single-word searches, ensure it's a whole word match
-          const exerciseNameWords = exerciseName.split(' ');
-          return exerciseNameWords.includes(searchTerm);
+
+      const potentialMatches = data.filter(exercise => {
+        const exerciseNameLower = exercise.name.toLowerCase();
+        const searchTermWords = searchTerm.split(' ').filter(w => w.length > 0);
+        const exerciseNameWords = exerciseNameLower.split(' ').filter((w: string) => w.length > 0);
+
+        // Check 1: Exact match (including common singular/plural variations)
+        if (exerciseNameLower === searchTerm || 
+            exerciseNameLower === searchTerm + 's' || 
+            (searchTerm.endsWith('s') && exerciseNameLower + 's' === searchTerm)) { // check if searchTerm is plural and exerciseName is singular
+          return true;
         }
+
+        // Check 2: Search term is a substring (whole phrase or significant part)
+        if (exerciseNameLower.includes(searchTerm)) {
+            if (searchTermWords.length > 1) {
+                // For multi-word search terms, check for more precise phrase matching
+                if (exerciseNameLower.startsWith(searchTerm + ' ') ||
+                    exerciseNameLower.endsWith(' ' + searchTerm) ||
+                    exerciseNameLower.includes(' ' + searchTerm + ' ') ||
+                    exerciseNameLower === searchTerm) { // handles exact phrase match without spaces
+                    return true;
+                }
+            } else { // Single word search term
+                // Ensure it's a whole word match for single search terms
+                if (exerciseNameWords.includes(searchTerm)) {
+                    return true;
+                }
+            }
+        }
+        // Check 3: All search term words are present in the exercise name (more flexible)
+        if (searchTermWords.every(word => exerciseNameLower.includes(word))) {
+          return true;
+        }
+
+        return false;
       });
-      
-      if (basicNameMatches.length > 0) {
-        // Sort matches by length (shorter names first) to prioritize simpler variations
-        return basicNameMatches.sort((a, b) => a.name.length - b.name.length);
+
+      if (potentialMatches.length > 0) {
+        potentialMatches.sort((a, b) => {
+          const aNameLower = a.name.toLowerCase();
+          const bNameLower = b.name.toLowerCase();
+          const searchTermWordsCount = searchTerm.split(' ').filter(w => w.length > 0).length;
+
+          // Priority 1: Exact matches (including singular/plural)
+          const aIsExact = (aNameLower === searchTerm || aNameLower === searchTerm + 's' || (searchTerm.endsWith('s') && aNameLower + 's' === searchTerm));
+          const bIsExact = (bNameLower === searchTerm || bNameLower === searchTerm + 's' || (searchTerm.endsWith('s') && bNameLower + 's' === searchTerm));
+          if (aIsExact && !bIsExact) return -1;
+          if (!aIsExact && bIsExact) return 1;
+          if (aIsExact && bIsExact) {
+            // If both are exact, prefer shorter name (though they should be same length if truly exact)
+            return a.name.length - b.name.length; 
+          }
+
+          // Priority 2: Search term is a complete phrase within the name
+          const aContainsPhrase = (
+            aNameLower.startsWith(searchTerm + ' ') || 
+            aNameLower.endsWith(' ' + searchTerm) || 
+            aNameLower.includes(' ' + searchTerm + ' ') || 
+            aNameLower === searchTerm
+          );
+          const bContainsPhrase = (
+            bNameLower.startsWith(searchTerm + ' ') || 
+            bNameLower.endsWith(' ' + searchTerm) || 
+            bNameLower.includes(' ' + searchTerm + ' ') || 
+            bNameLower === searchTerm
+          );
+          if (aContainsPhrase && !bContainsPhrase) return -1;
+          if (!aContainsPhrase && bContainsPhrase) return 1;
+
+          // Priority 3: Shorter names are generally preferred for base exercises
+          if (a.name.length !== b.name.length) {
+            return a.name.length - b.name.length;
+          }
+          
+          // Priority 4: Closer word count to search term
+          const aWordDiff = Math.abs(aNameLower.split(' ').length - searchTermWordsCount);
+          const bWordDiff = Math.abs(bNameLower.split(' ').length - searchTermWordsCount);
+          if (aWordDiff !== bWordDiff) {
+            return aWordDiff - bWordDiff;
+          }
+
+          // Priority 5: Fewer extra words compared to search term
+          const aExtraWords = aNameLower.split(' ').length - searchTermWordsCount;
+          const bExtraWords = bNameLower.split(' ').length - searchTermWordsCount;
+          if (aExtraWords >= 0 && bExtraWords >= 0) { // only compare if both have at least as many words
+            if (aExtraWords !== bExtraWords) return aExtraWords - bExtraWords;
+          }
+
+          return 0; 
+        });
+        return [potentialMatches[0]]; // Return only the top sorted match
       }
+      
+      return []; // If no relevant matches found after filtering and sorting
     }
     
-    return data;
+    return data; // If not searching by name, or data is empty, or no name provided
   } catch (error) {
     console.error('Error fetching exercises:', error);
     throw error;

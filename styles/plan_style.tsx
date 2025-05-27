@@ -76,6 +76,14 @@ const plan_styles = StyleSheet.create({
     },
     editButtonText: {
       color: '#e74c3c',
+      fontSize: 14,
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      marginTop: 15,
+      width: '100%',
     },
     goalTitle: {
       color: 'white',

@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { supabase } from '../lib/supabase/supabase';
 import { useRouter, useSegments } from 'expo-router';
 import React from 'react';
+import { AuthProvider } from '@/contexts/auth';
 
 export default function RootLayout() {
   const segments = useSegments();
@@ -39,8 +40,8 @@ export default function RootLayout() {
   }, [segments]);
 
   return (
-    <>
+    <AuthProvider>
       <Stack screenOptions={{ headerShown: false }} />
-    </>
+    </AuthProvider>
   );
 }

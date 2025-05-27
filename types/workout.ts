@@ -4,7 +4,7 @@ export type WorkoutPlan = Database['public']['Tables']['workout_plans']['Row'];
 
 export type Exercise = {
   name: string;
-  sets: number;
+  sets: number; // Changed from number to string for form consistency
   reps: string;
   duration: string;
 };

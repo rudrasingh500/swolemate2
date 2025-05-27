@@ -96,12 +96,14 @@ const analysis_styles = StyleSheet.create({
       borderRadius: 15,
     },
     dateText: {
-      color: '#e0e0e0',
-      marginBottom: 5,
+      color: '#bbb',
+      fontSize: 14,
+      marginBottom: 15,
     },
     feedbackText: {
       color: 'white',
-      marginTop: 5,
+      marginBottom: 20,
+      lineHeight: 22,
     },
     cardTitle: {
       color: 'white',
@@ -115,9 +117,9 @@ const analysis_styles = StyleSheet.create({
     },
     modalContainer: {
       flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.9)',
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
     },
     modalContent: {
       backgroundColor: 'rgba(40, 40, 40, 0.95)',
@@ -127,7 +129,8 @@ const analysis_styles = StyleSheet.create({
       maxHeight: '80%',
       height: Dimensions.get('window').height * 0.8,
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      alignSelf: 'center',
     },
     progressBar: {
       width: '100%',
@@ -138,20 +141,16 @@ const analysis_styles = StyleSheet.create({
       overflow: 'hidden',
     },
     slideContent: {
-      flex: 1,
       padding: 20,
-      alignItems: 'center',
-      overflow: 'auto',
-      marginBottom: 10
+    },
+    slideContentScroll: {
+      flex: 1,
     },
     slideTitle: {
       color: 'white',
-      textAlign: 'center',
-      marginBottom: 25,
-      fontSize: 28,
-      fontWeight: 'bold',
+      marginBottom: 10,
     },
-    scoreContainer: {
+    slideshowScoreContainer: {
       backgroundColor: 'rgba(231, 76, 60, 0.15)',
       borderRadius: 20,
       padding: 20,
@@ -159,41 +158,28 @@ const analysis_styles = StyleSheet.create({
       width: '100%',
       marginBottom: 25,
     },
-    scoreText: {
+    slideshowScoreText: {
       color: '#e74c3c',
       fontSize: 56,
       fontWeight: 'bold',
     },
-    scoreLabel: {
+    slideshowScoreLabel: {
       color: '#e0e0e0',
       fontSize: 18,
       marginTop: 5,
       textTransform: 'uppercase',
       letterSpacing: 1,
     },
-    feedbackText: {
-      color: 'white',
-      fontSize: 16,
-      lineHeight: 24,
-      textAlign: 'center',
-      marginVertical: 20,
-      paddingHorizontal: 10,
-    },
     subheading: {
       color: 'white',
-      fontSize: 20,
       fontWeight: 'bold',
-      marginTop: 20,
-      marginBottom: 15,
-      textAlign: 'center',
-      width: '100%',
+      marginBottom: 10,
+      marginTop: 10,
     },
     bulletPoint: {
       color: 'white',
-      fontSize: 16,
-      marginLeft: 15,
-      marginBottom: 10,
-      lineHeight: 22,
+      marginBottom: 5,
+      marginLeft: 5,
     },
     mistakeContainer: {
       marginVertical: 15,
@@ -219,38 +205,114 @@ const analysis_styles = StyleSheet.create({
     navigationContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingTop: 25,
-      marginTop: 20,
-      borderTopWidth: 1,
-      borderTopColor: 'rgba(255, 255, 255, 0.2)',
+      padding: 20,
     },
     navButton: {
-    backgroundColor: 'rgba(231, 76, 60, 0.2)',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    minWidth: 100,
-  },
-  closeButton: {
-    backgroundColor: 'rgba(231, 76, 60, 0.4)',
-  },
-  navButtonText: {
-    color: '#e74c3c',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  navButtonDisabled: {
-    backgroundColor: 'rgba(150, 150, 150, 0.2)',
-  },
-  navButtonTextDisabled: {
-    color: 'rgba(150, 150, 150, 0.5)',
-  },
-  progressFill: {
-    position: 'absolute',
-    height: '100%',
-    backgroundColor: '#e74c3c',
-    borderRadius: 2,
-    transition: 'width 0.3s ease-in-out'
-  }
+      backgroundColor: 'rgba(231, 76, 60, 0.2)',
+      borderRadius: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      minWidth: 100,
+    },
+    closeButton: {
+      backgroundColor: 'rgba(231, 76, 60, 0.4)',
+    },
+    navButtonText: {
+      color: '#e74c3c',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    navButtonDisabled: {
+      backgroundColor: 'rgba(150, 150, 150, 0.2)',
+    },
+    navButtonTextDisabled: {
+      color: 'rgba(150, 150, 150, 0.5)',
+    },
+    progressFill: {
+      position: 'absolute',
+      height: '100%',
+      backgroundColor: '#e74c3c',
+      borderRadius: 2,
+    },
+    loadingContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+      borderRadius: 10,
+      padding: 30,
+      marginVertical: 20,
+    },
+    loadingText: {
+      color: 'white',
+      marginTop: 15,
+      fontSize: 16,
+    },
+    slideHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    slideIndicator: {
+      textAlign: 'center',
+      color: 'white',
+      marginVertical: 10,
+    },
+    issueContainer: {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      borderRadius: 10,
+      padding: 15,
+      marginVertical: 10,
+    },
+    issueImage: {
+      width: '100%',
+      height: 200,
+      borderRadius: 8,
+      marginBottom: 10,
+    },
+    issueText: {
+      color: '#e74c3c',
+      fontWeight: 'bold',
+      marginBottom: 5,
+    },
+    correctionText: {
+      color: 'white',
+      marginBottom: 5,
+    },
+    // Video player styles
+    videoContainer: {
+      width: '100%',
+      minHeight: 300,
+      backgroundColor: '#131313',
+      borderRadius: 8,
+      marginBottom: 20,
+      overflow: 'hidden',
+      position: 'relative',
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 10,
+    },
+    video: {
+      backgroundColor: 'transparent',
+      alignSelf: 'center',
+    },
+    // Timestamp navigation button styles
+    timestampButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(231, 76, 60, 0.1)',
+      padding: 10,
+      borderTopLeftRadius: 15,
+      borderTopRightRadius: 15,
+    },
+    timestampText: {
+      color: '#e74c3c',
+      marginLeft: 10,
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
 });
+
 export default analysis_styles;
