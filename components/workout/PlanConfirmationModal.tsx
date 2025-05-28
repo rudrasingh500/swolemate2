@@ -1,18 +1,21 @@
+import React from 'react';
 import { View, Modal } from 'react-native';
 import { Text, Button } from '@rneui/themed';
 import plan_styles from '@/styles/plan_style';
-import { PreDefinedPlan } from '@/types/workout';
+import { EnhancedWorkoutPlan } from '@/types/enhanced-workout';
 
 interface PlanConfirmationModalProps {
   isVisible: boolean;
-  selectedPlan: PreDefinedPlan | null;
-  onConfirm: (plan: PreDefinedPlan) => void;
+  selectedPlan: EnhancedWorkoutPlan | null;
+  selectedDays: string[];
+  onConfirm: (plan: EnhancedWorkoutPlan) => void;
   onCancel: () => void;
 }
 
 export default function PlanConfirmationModal({
   isVisible,
   selectedPlan,
+  selectedDays,
   onConfirm,
   onCancel
 }: PlanConfirmationModalProps) {
@@ -30,6 +33,14 @@ export default function PlanConfirmationModal({
             <>
               <Text style={plan_styles.modalPlanTitle}>{selectedPlan.title}</Text>
               <Text style={plan_styles.modalDescription}>{selectedPlan.description}</Text>
+              <Text style={[plan_styles.modalDescription, { marginTop: 10, fontSize: 14 }]}>
+                Level: {selectedPlan.level} • Duration: {selectedPlan.estimatedTimePerSession} • {selectedPlan.daysPerWeek} days/week
+              </Text>
+              {selectedDays.length > 0 && (
+                <Text style={[plan_styles.modalDescription, { marginTop: 10, fontSize: 14, color: '#e74c3c', fontWeight: 'bold' }]}>
+                  Your workout days: {selectedDays.join(', ')}
+                </Text>
+              )}
               <View style={plan_styles.modalButtons}>
                 <Button
                   title="Confirm"

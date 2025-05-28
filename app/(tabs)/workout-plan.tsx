@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase/supabase';
 import React from 'react';
 import plan_styles from '@/styles/plan_style';
-import { WorkoutPlan, DailyPlan, PreDefinedPlan } from '@/types/workout';
-import PreDefinedPlans from '@/components/workout/PreDefinedPlans';
+import { WorkoutPlan, DailyPlan } from '@/types/workout';
+import { EnhancedWorkoutPlan } from '@/types/enhanced-workout';
+import EnhancedPreDefinedPlans from '@/components/workout/EnhancedPreDefinedPlans';
 import CurrentPlan from '@/components/workout/CurrentPlan';
 import PlanConfirmationModal from '@/components/workout/PlanConfirmationModal';
 import CustomPlanForm from '@/components/workout/CustomPlanForm'; // Will be created next
@@ -15,7 +16,8 @@ export default function WorkoutPlanScreen() {
   const [currentGoal, setCurrentGoal] = useState('Build Muscle & Strength'); // Made into state
   const [weeklyPlan, setWeeklyPlan] = useState<DailyPlan[]>([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<PreDefinedPlan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<EnhancedWorkoutPlan | null>(null);
+  const [selectedWorkoutDays, setSelectedWorkoutDays] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false); // Kept for now, might be removed later
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
   const [currentView, setCurrentView] = useState<'current' | 'predefined' | 'custom'>('current'); // Manages which view to show
@@ -101,18 +103,47 @@ export default function WorkoutPlanScreen() {
     }
   };
 
-  const applyPreDefinedPlan = async (plan: PreDefinedPlan) => {
+  const applyPreDefinedPlan = async (plan: EnhancedWorkoutPlan) => {
     try {
       setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const weekDays = ['Monday', 'Wednesday', 'Friday'];
-      const planData = weekDays.map(day => ({
-        day,
-        timeFrame: 'Flexible',
-        exercises: plan.exercises
-      }));
+      // Convert enhanced workout plan to daily plan format using selected days
+      let planData: DailyPlan[] = [];
+      
+      if (plan.singleWeekTemplate) {
+        // For ongoing programs, use the single week template with selected days
+        planData = selectedWorkoutDays.map((selectedDay, index) => {
+          const templateWorkout = plan.singleWeekTemplate![index % plan.singleWeekTemplate!.length];
+          return {
+            day: selectedDay,
+            timeFrame: templateWorkout.estimatedDuration,
+            exercises: templateWorkout.exercises.map(exercise => ({
+              name: exercise.name,
+              sets: exercise.sets,
+              reps: exercise.reps,
+              duration: exercise.restTime || '2 mins'
+            }))
+          };
+        });
+      } else if (plan.weeks && plan.weeks.length > 0) {
+        // For structured weekly programs, use the first week with selected days
+        const firstWeek = plan.weeks[0];
+        planData = selectedWorkoutDays.map((selectedDay, index) => {
+          const templateWorkout = firstWeek.workouts[index % firstWeek.workouts.length];
+          return {
+            day: selectedDay,
+            timeFrame: templateWorkout.estimatedDuration,
+            exercises: templateWorkout.exercises.map(exercise => ({
+              name: exercise.name,
+              sets: exercise.sets,
+              reps: exercise.reps,
+              duration: exercise.restTime || '2 mins'
+            }))
+          };
+        });
+      }
 
       const { error } = await supabase
         .from('workout_plans')
@@ -123,6 +154,7 @@ export default function WorkoutPlanScreen() {
       await fetchWorkoutPlan();
       setShowConfirmation(false);
       setSelectedPlan(null);
+      setSelectedWorkoutDays([]);
       setIsEditing(false);
       setCurrentView('current');
     } catch (error) {
@@ -190,9 +222,10 @@ export default function WorkoutPlanScreen() {
                 onCancel={() => setCurrentView(workoutPlan && workoutPlan.plan_data && (workoutPlan.plan_data as DailyPlan[]).length > 0 ? 'current' : 'predefined')}
               />
             ) : currentView === 'predefined' ? (
-              <PreDefinedPlans
-                onSelectPlan={(plan) => {
+              <EnhancedPreDefinedPlans
+                onSelectPlan={(plan, selectedDays) => {
                   setSelectedPlan(plan);
+                  setSelectedWorkoutDays(selectedDays);
                   setShowConfirmation(true);
                 }}
                 isInitialView={!workoutPlan || !workoutPlan.plan_data || (workoutPlan.plan_data as DailyPlan[]).length === 0}
@@ -214,10 +247,12 @@ export default function WorkoutPlanScreen() {
       <PlanConfirmationModal
         isVisible={showConfirmation}
         selectedPlan={selectedPlan}
+        selectedDays={selectedWorkoutDays}
         onConfirm={applyPreDefinedPlan}
         onCancel={() => {
           setShowConfirmation(false);
           setSelectedPlan(null);
+          setSelectedWorkoutDays([]);
         }}
       />
     </>

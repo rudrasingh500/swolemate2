@@ -9,7 +9,6 @@ import { WorkoutPlan } from '@/types/workout';
 import { ExerciseType, LogData, WorkoutInProgress } from '@/types/workout-log';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import WorkoutList from '@/components/home/WorkoutList';
-import StreakDisplay from '@/components/home/StreakDisplay';
 import EmptyStateView from '@/components/home/EmptyStateView';
 import HealthWidgets from '@/components/home/HealthWidgets';
 import LoggingModal from '@/components/workout/LoggingModal';
@@ -19,7 +18,6 @@ export default function TabsMainScreen() {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
-  const [workoutStreak, setWorkoutStreak] = useState(0);
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [tomorrowWorkouts, setTomorrowWorkouts] = useState<any[]>([]);
   const [loggingModalVisible, setLoggingModalVisible] = useState(false);
@@ -87,7 +85,7 @@ export default function TabsMainScreen() {
           if (createError) throw createError;
           setWorkoutPlan(newPlan);
           if (newPlan) {
-            setWorkoutStreak(newPlan.current_streak || 0);
+            // Removed setWorkoutStreak
           }
           return;
         }
@@ -95,7 +93,7 @@ export default function TabsMainScreen() {
       }
       setWorkoutPlan(plan);
       if (plan) {
-        setWorkoutStreak(plan.current_streak || 0);
+        // Removed setWorkoutStreak
         
         // Process workout plan data
         if (plan.plan_data) {
@@ -385,7 +383,6 @@ export default function TabsMainScreen() {
 
       if (planError) throw planError;
       
-      setWorkoutStreak(newStreak);
       setWorkouts(updatedWorkouts);
       
       // Update the workout plan state to reflect the changes
@@ -436,7 +433,7 @@ export default function TabsMainScreen() {
               contentContainerStyle={{ flexGrow: 1 }}
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}>
-              <EmptyStateView workoutStreak={workoutStreak} />
+              <EmptyStateView workoutStreak={0} />
             </ScrollView>
           </View>
         </ImageBackground>
@@ -456,7 +453,6 @@ export default function TabsMainScreen() {
               contentContainerStyle={{ flexGrow: 1 }}
               showsVerticalScrollIndicator={false}
               showsHorizontalScrollIndicator={false}>
-            <StreakDisplay streak={workoutStreak} />
             
             <HealthWidgets />
 
